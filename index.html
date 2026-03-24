@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Bohrkernansprache | ÖNORM EN ISO 14688</title>
+<style>
+  /* ═══════════════════════════════════════
+     ROOT & RESET
+  ═══════════════════════════════════════ */
+  :root {
+    --yellow:   #F5C800;
+    --yellow-d: #D4A900;
+    --yellow-l: #FFF5B0;
+    --black:    #1A1A1A;
+    --dark:     #222222;
+    --mid:      #333333;
+    --gray:     #555555;
+    --light:    #888888;
+    --bg:       #111111;
+    --card:     #1E1E1E;
+    --card2:    #272727;
+    --border:   #3A3A3A;
+    --text:     #F0F0F0;
+    --text2:    #AAAAAA;
+    --green:    #4CAF50;
+    --red:      #E53935;
+    --radius:   12px;
+    --shadow:   0 4px 20px rgba(0,0,0,0.5);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    overflow-x: hidden;
+  }
+  button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; }
+  input, select, textarea {
+    font: inherit;
+    color: var(--text);
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    width: 100%;
+    outline: none;
+    transition: border-color .2s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--yellow); }
+  select option { background: var(--dark); }
+
+  /* ═══════════════════════════════════════
+     LAYOUT
+  ═══════════════════════════════════════ */
+  .app-header {
+    background: var(--black);
+    border-bottom: 3px solid var(--yellow);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.6);
+  }
+  .app-header svg { flex-shrink: 0; }
+  .header-title { flex: 1; }
+  .header-title h1 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--yellow);
+    letter-spacing: .02em;
+  }
+  .header-title p {
+    font-size: 0.7rem;
+    color: var(--text2);
+    margin-top: 1px;
+  }
+  .header-actions { display: flex; gap: 8px; }
+  .btn-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--yellow);
+    transition: background .2s;
+  }
+  .btn-icon:hover { background: var(--mid); }
+
+  .main { padding: 14px; max-width: 700px; margin: 0 auto; }
+
+  /* ═══════════════════════════════════════
+     COLLAPSIBLE SECTION
+  ═══════════════════════════════════════ */
+  .section-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 16px;
+    background: var(--card);
+    cursor: pointer;
+    user-select: none;
+    transition: background .15s;
+  }
+  .section-header:hover { background: var(--card2); }
+  .section-icon {
+    width: 32px; height: 32px;
+    background: var(--yellow);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .section-icon svg { color: var(--black); }
+  .section-title { flex: 1; }
+  .section-title h2 { font-size: .92rem; font-weight: 700; color: var(--text); }
+  .section-title p  { font-size: .72rem; color: var(--text2); margin-top: 1px; }
+  .chevron {
+    color: var(--yellow);
+    transition: transform .25s;
+    flex-shrink: 0;
+  }
+  .chevron.open { transform: rotate(180deg); }
+  .section-body {
+    padding: 0 16px 16px;
+    display: none;
+    animation: fadeIn .2s ease;
+  }
+  .section-body.open { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; } }
+
+  /* ═══════════════════════════════════════
+     FORM GRID
+  ═══════════════════════════════════════ */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .form-grid .full { grid-column: 1 / -1; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-label {
+    font-size: .72rem;
+    font-weight: 600;
+    color: var(--yellow);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  /* ═══════════════════════════════════════
+     SCHICHTEN (LAYERS)
+  ═══════════════════════════════════════ */
+  .layers-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .layers-title {
+    font-size: .85rem;
+    font-weight: 700;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+  .btn-add {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--yellow);
+    color: var(--black);
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: .85rem;
+    font-weight: 700;
+    transition: background .2s, transform .1s;
+  }
+  .btn-add:hover { background: var(--yellow-d); }
+  .btn-add:active { transform: scale(0.97); }
+
+  /* LAYER CARD */
+  .layer-card {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .layer-card.active { border-color: var(--yellow); }
+  .layer-topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .layer-badge {
+    background: var(--yellow);
+    color: var(--black);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: .75rem;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .layer-summary {
+    flex: 1;
+    font-size: .82rem;
+    color: var(--text2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .layer-summary strong { color: var(--text); }
+  .layer-controls { display: flex; gap: 6px; }
+  .btn-del {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: rgba(229,57,53,.15);
+    color: var(--red);
+    display: flex; align-items: center; justify-content: center;
+    transition: background .2s;
+    flex-shrink: 0;
+  }
+  .btn-del:hover { background: rgba(229,57,53,.3); }
+  .layer-body {
+    padding: 14px;
+    display: none;
+  }
+  .layer-body.open { display: block; }
+  .layer-chevron { color: var(--yellow); transition: transform .2s; }
+  .layer-chevron.open { transform: rotate(180deg); }
+
+  /* ═══════════════════════════════════════
+     CHIP SELECTOR (click-to-select)
+  ═══════════════════════════════════════ */
+  .chip-section {
+    margin-bottom: 14px;
+  }
+  .chip-label {
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--yellow);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .chip-label .selected-val {
+    background: var(--yellow);
+    color: var(--black);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: .7rem;
+    font-weight: 700;
+  }
+  .chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .chip {
+    padding: 5px 11px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    font-size: .78rem;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .15s;
+    background: var(--card);
+    user-select: none;
+  }
+  .chip:hover { border-color: var(--yellow); color: var(--yellow); }
+  .chip.selected {
+    background: var(--yellow);
+    border-color: var(--yellow);
+    color: var(--black);
+    font-weight: 700;
+  }
+  .chip.multi.selected {
+    background: var(--yellow);
+    border-color: var(--yellow);
+    color: var(--black);
+  }
+
+  /* Depth inputs */
+  .depth-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .depth-row .form-group { flex: 1; }
+  .depth-sep {
+    color: var(--text2);
+    font-weight: 700;
+    padding-top: 20px;
+    font-size: 1.1rem;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 14px 0;
+  }
+
+  /* Generated text */
+  .generated-box {
+    background: var(--black);
+    border: 1px solid var(--yellow);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: .82rem;
+    color: var(--yellow);
+    font-family: 'Courier New', monospace;
+    line-height: 1.6;
+    min-height: 36px;
+    word-break: break-word;
+  }
+  .generated-label {
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 4px;
+  }
+
+  /* ═══════════════════════════════════════
+     FOOTER ACTIONS
+  ═══════════════════════════════════════ */
+  .footer-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    margin-bottom: 30px;
+  }
+  .btn-primary {
+    flex: 1;
+    background: var(--yellow);
+    color: var(--black);
+    border-radius: 10px;
+    padding: 13px;
+    font-size: .92rem;
+    font-weight: 800;
+    transition: background .2s, transform .1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-primary:hover { background: var(--yellow-d); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-secondary {
+    background: var(--card2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 18px;
+    font-size: .88rem;
+    font-weight: 600;
+    transition: background .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-secondary:hover { background: var(--mid); }
+
+  /* ═══════════════════════════════════════
+     TOAST
+  ═══════════════════════════════════════ */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--yellow);
+    color: var(--black);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: .88rem;
+    z-index: 999;
+    transition: transform .3s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ═══════════════════════════════════════
+     MODAL (Export Preview)
+  ═══════════════════════════════════════ */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.8);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--yellow);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .modal-header {
+    background: var(--black);
+    border-bottom: 2px solid var(--yellow);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-header h3 { font-size: .95rem; color: var(--yellow); font-weight: 800; }
+  .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    font-size: .8rem;
+    line-height: 1.7;
+    font-family: 'Courier New', monospace;
+    color: var(--text);
+    white-space: pre-wrap;
+    background: var(--black);
+  }
+  .modal-footer {
+    padding: 12px 16px;
+    display: flex;
+    gap: 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ═══════════════════════════════════════
+     RESPONSIVE
+  ═══════════════════════════════════════ */
+  @media (max-width: 480px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid .full { grid-column: 1; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--yellow); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header class="app-header">
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+    <rect width="40" height="40" rx="8" fill="#F5C800"/>
+    <rect x="17" y="4" width="6" height="24" rx="3" fill="#1A1A1A"/>
+    <rect x="13" y="26" width="14" height="4" rx="2" fill="#1A1A1A"/>
+    <rect x="15" y="30" width="10" height="4" rx="2" fill="#1A1A1A"/>
+    <circle cx="20" cy="10" r="3" fill="#F5C800"/>
+  </svg>
+  <div class="header-title">
+    <h1>Bohrkernansprache</h1>
+    <p>ÖNORM EN ISO 14688-1/2 · Geotechnik</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn-icon" onclick="openExport()" title="Export / Vorschau">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <path d="M12 3v13M8 12l4 4 4-4M5 20h14"/>
+      </svg>
+    </button>
+    <button class="btn-icon" onclick="resetAll()" title="Alles zurücksetzen">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.19 2.44L3 8"/>
+        <path d="M3 3v5h5"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<div class="main">
+
+<!-- ═══════════════ PROJEKTDATEN ═══════════════ -->
+<div class="section-card" id="section-projekt">
+  <div class="section-header" onclick="toggleSection('projekt')">
+    <div class="section-icon">
+      <svg width="18" height="18" fill="none" stroke="#1A1A1A" stroke-width="2.2" viewBox="0 0 24 24">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+      </svg>
+    </div>
+    <div class="section-title">
+      <h2>Projektdaten</h2>
+      <p>Allgemeine Bohrungs-Parameter</p>
+    </div>
+    <svg class="chevron open" id="chevron-projekt" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  </div>
+  <div class="section-body open" id="body-projekt">
+    <div class="form-grid">
+      <div class="form-group full">
+        <label class="form-label">Projekt / Bauvorhaben</label>
+        <input type="text" id="proj-name" placeholder="z.B. Tiefgarage Linz-Urfahr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Auftraggeber</label>
+        <input type="text" id="proj-ag" placeholder="Auftraggeber">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kostenstelle</label>
+        <input type="text" id="proj-kst" placeholder="KST-Nr.">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bohrlochnummer</label>
+        <input type="text" id="proj-bhnr" placeholder="z.B. BK-01">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Maschinentyp</label>
+        <input type="text" id="proj-machine" placeholder="z.B. Bauer BG 18">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bohrmeister</label>
+        <input type="text" id="proj-bohrmeister" placeholder="Name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Verfasser</label>
+        <input type="text" id="proj-verfasser" placeholder="Name / Kürzel">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Datum</label>
+        <input type="date" id="proj-datum">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bohrbeginn</label>
+        <input type="datetime-local" id="proj-start">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bohrende</label>
+        <input type="datetime-local" id="proj-end">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SCHICHTEN ═══════════════ -->
+<div class="section-card">
+  <div style="padding:14px 16px 6px">
+    <div class="layers-header">
+      <span class="layers-title">⛏ Schichten</span>
+      <button class="btn-add" onclick="addLayer()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Schicht hinzufügen
+      </button>
+    </div>
+  </div>
+  <div id="layers-container" style="padding:0 10px 14px">
+    <!-- layers inserted here -->
+  </div>
+  <div id="no-layers" style="padding:20px 16px;text-align:center;color:var(--text2);font-size:.85rem;">
+    Noch keine Schichten. Tippe auf „Schicht hinzufügen".
+  </div>
+</div>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<div class="footer-actions">
+  <button class="btn-primary" onclick="openExport()">
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+      <path d="M12 3v13M8 12l4 4 4-4M5 20h14"/>
+    </svg>
+    Protokoll exportieren
+  </button>
+  <button class="btn-secondary" onclick="copyToClipboard()">
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+      <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+    </svg>
+    Kopieren
+  </button>
+</div>
+
+</div><!-- /main -->
+
+<!-- ═══════════════ MODAL EXPORT ═══════════════ -->
+<div class="modal-overlay" id="modal-export">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📄 Bohrprofil – Vorschau</h3>
+      <button class="btn-icon" onclick="closeExport()" style="width:32px;height:32px;">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modal-content"></div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="downloadCSV()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path d="M12 3v13M8 12l4 4 4-4M5 20h14"/>
+        </svg>
+        CSV herunterladen
+      </button>
+      <button class="btn-secondary" onclick="downloadTXT()">
+        TXT / Protokoll
+      </button>
+      <button class="btn-secondary" onclick="closeExport()">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   DATA: ÖNORM EN ISO 14688-1/2 WERTE
+   Quellen:
+   - Tabelle 1 (Korngrößenfraktionen) → ISO 14688-1:2017, 5.1.1 [1]
+   - Tabelle 4 (Konsistenz)           → ISO 14688-1:2017, 6.1.6 [1]
+   - Tabelle A.1 (Plastizität)         → ISO 14688-1:2017, Anh. A.3.4 [1]
+   - A.3.5 (Trockenfestigkeit)         → ISO 14688-1:2017, Anh. A.3.5 [1]
+   - Tabelle 6 (org. Anteil)           → ISO 14688-1:2017, 6.1.8 [1]
+   - Tabelle 7 (Kalkgehalt)            → ISO 14688-1:2017, 6.1.9 [1]
+   - Tabelle 3 (org. Klassif.)         → ISO 14688-2:2018, 4.5 [2]
+   - Tabelle 4 (Kalk Klassif. %)       → ISO 14688-2:2018, 4.6 [2]
+   - Tabelle 5 (Lagerungsdichte)       → ISO 14688-2:2018, 5.2 [2]
+   - NB (Konsistenz national)          → ÖNORM EN ISO 14688-1:2019 [1]
+   - Tabelle NA.1 (Kurzzeichen ÖN)     → ÖNORM EN ISO 14688-1:2019 [1]
+═══════════════════════════════════════════════ */
+
+const ISO = {
+
+  /* KORNGROSSEN – Tabelle 1 [1] & Tabelle NA.1 [1] */
+  korngross: {
+    label: "Korngrößen (Hauptanteil)",
+    multi: false,
+    items: [
+      { code:"lBo", label:"Großer Block",   desc:"> 630 mm" },
+      { code:"Bo",  label:"Block",           desc:"> 200–630 mm" },
+      { code:"Co",  label:"Stein",           desc:"> 63–200 mm" },
+      { code:"Gr",  label:"Kies",            desc:"> 2–63 mm" },
+      { code:"cGr", label:"Grobkies",        desc:"> 20–63 mm" },
+      { code:"mGr", label:"Mittelkies",      desc:"> 6,3–20 mm" },
+      { code:"fGr", label:"Feinkies",        desc:"> 2–6,3 mm" },
+      { code:"Sa",  label:"Sand",            desc:"> 0,063–2 mm" },
+      { code:"cSa", label:"Grobsand",        desc:"> 0,63–2 mm" },
+      { code:"mSa", label:"Mittelsand",      desc:"> 0,2–0,63 mm" },
+      { code:"fSa", label:"Feinsand",        desc:"> 0,063–0,2 mm" },
+      { code:"Si",  label:"Schluff",         desc:"> 0,002–0,063 mm" },
+      { code:"Cl",  label:"Ton",             desc:"≤ 0,002 mm" },
+      { code:"Pt",  label:"Torf",            desc:"organisch" },
+      { code:"Gy",  label:"Gyttja",          desc:"organisch" },
+      { code:"Hu",  label:"Humus",           desc:"organisch" },
+      { code:"A",   label:"Anschüttung",     desc:"anthropogen" },
+    ]
+  },
+
+  /* NEBENANTEIL – Tabelle 1 [1], multi-select */
+  nebenanteil: {
+    label: "Neben-/Drittanteil (Adjektiv)",
+    multi: true,
+    items: [
+      { code:"bo",  label:"blockig" },
+      { code:"co",  label:"steinig" },
+      { code:"gr",  label:"kiesig" },
+      { code:"cgr", label:"grobkiesig" },
+      { code:"mgr", label:"mittelkiesig" },
+      { code:"fgr", label:"feinkiesig" },
+      { code:"sa",  label:"sandig" },
+      { code:"csa", label:"grobsandig" },
+      { code:"msa", label:"mittelsandig" },
+      { code:"fsa", label:"feinsandig" },
+      { code:"si",  label:"schluffig" },
+      { code:"cl",  label:"tonig" },
+      { code:"t",   label:"torfig" },
+      { code:"h",   label:"humos" },
+    ]
+  },
+
+  /* KÖRNUNGSLINIE – Tabelle 2 [2] */
+  koenung: {
+    label: "Form der Körnungslinie",
+    multi: false,
+    items: [
+      { code:"S", label:"sehr eng gestuft",       desc:"CU < 3" },
+      { code:"E", label:"eng gestuft",             desc:"CU 3–6" },
+      { code:"M", label:"mittel gestuft",          desc:"CU 6–15" },
+      { code:"W", label:"weit gestuft",            desc:"CU > 15, CC 1–3" },
+      { code:"I", label:"intermittierend gestuft", desc:"CU > 15, CC < 0,5" },
+    ]
+  },
+
+  /* WASSER / Feuchte – 6.1.1 [1] */
+  wasser: {
+    label: "Wasserverhältnisse",
+    multi: false,
+    items: [
+      { code:"tr",   label:"trocken",              desc:"kein sichtbares Wasser" },
+      { code:"fe",   label:"feucht",               desc:"Wasser spürbar, kein freies Wasser" },
+      { code:"se",   label:"sehr feucht",          desc:"freies Wasser bei Druck" },
+      { code:"na",   label:"nass",                 desc:"freies Wasser sichtbar" },
+      { code:"wg",   label:"wassergesättigt",      desc:"Sättigungsgrad ≥ 1" },
+    ]
+  },
+
+  /* KORNFORM – 6.1.2 [1] */
+  kornform: {
+    label: "Kornform",
+    multi: false,
+    items: [
+      { code:"eck",  label:"eckig",                desc:"scharfkantig, kaum transport." },
+      { code:"leck", label:"leicht eckig",         desc:"Kanten leicht abgerundet" },
+      { code:"halr", label:"halbrund",             desc:"Kanten deutlich abgerundet" },
+      { code:"rnd",  label:"gerundet",             desc:"gleichmäßig abgerundet" },
+      { code:"wgrnd",label:"wohlgerundet",         desc:"keine scharfen Kanten" },
+    ]
+  },
+
+  /* KONSISTENZ – Tabelle 4 [1] + Anhang NB [1] */
+  konsistenz: {
+    label: "Konsistenz (feinkörnig)",
+    multi: false,
+    items: [
+      { code:"fls", label:"flüssig",              desc:"fließt unter Eigenmasse (NB [1])" },
+      { code:"bri", label:"breiig",               desc:"Finger bis 25 mm eindrückbar" },
+      { code:"swe", label:"sehr weich/weich",     desc:"Finger bis 10 mm eindrückbar" },
+      { code:"wei", label:"weich/steif",          desc:"Daumen hinterlässt Eindruck" },
+      { code:"ste", label:"steif/halbfest",       desc:"Daumen drückt leicht ein" },
+      { code:"hfe", label:"halbfest/fest",        desc:"Daumennagel nötig" },
+      { code:"fes", label:"fest (hart)",          desc:"ausgetrocknet, zerbricht (NB [1])" },
+    ]
+  },
+
+  /* LAGERUNGSDICHTE – Tabelle 5 [2] (grobkörnig) */
+  lagerung: {
+    label: "Lagerungsdichte (grobkörnig)",
+    multi: false,
+    items: [
+      { code:"sloc", label:"sehr locker", desc:"ID 0–15 %" },
+      { code:"loc",  label:"locker",      desc:"ID 15–35 %" },
+      { code:"mdi",  label:"mitteldicht", desc:"ID 35–65 %" },
+      { code:"dic",  label:"dicht",       desc:"ID 65–85 %" },
+      { code:"sdic", label:"sehr dicht",  desc:"ID 85–100 %" },
+    ]
+  },
+
+  /* PLASTIZITÄT – Tabelle A.1 [1] */
+  plastizitaet: {
+    label: "Plastizität",
+    multi: false,
+    items: [
+      { code:"npl", label:"nicht plastisch", desc:"keine 3 mm Walze rollbar" },
+      { code:"gpl", label:"gering",          desc:"Walze kaum rollbar" },
+      { code:"mpl", label:"mittel",          desc:"Walze rollbar, Ausrollgrenze rasch" },
+      { code:"hpl", label:"hoch",            desc:"Walze mehrfach rollbar" },
+    ]
+  },
+
+  /* TROCKENFESTIGKEIT – A.3.5 [1] */
+  trockenfest: {
+    label: "Trockenfestigkeit",
+    multi: false,
+    items: [
+      { code:"tf0", label:"keine",     desc:"Kugel zerfällt sofort" },
+      { code:"tf1", label:"niedrig",   desc:"Kugel zerfällt leicht" },
+      { code:"tf2", label:"mittel",    desc:"mäßiger Widerstand" },
+      { code:"tf3", label:"hoch",      desc:"hoher Widerstand" },
+      { code:"tf4", label:"sehr hoch", desc:"kaum zerdrückbar" },
+    ]
+  },
+
+  /* ORGANISCHER ANTEIL – Tabelle 6 [1] + Tabelle 3 [2] */
+  organisch: {
+    label: "Organischer Anteil",
+    multi: false,
+    items: [
+      { code:"org0", label:"nicht organisch",     desc:"< 2 %" },
+      { code:"org1", label:"schwach organisch",   desc:"2–6 %, grau [2]" },
+      { code:"org2", label:"mäßig organisch",     desc:"6–20 %, dunkelgrau [2]" },
+      { code:"org3", label:"stark organisch",     desc:"> 20 %, schwarz [2]" },
+      { code:"torf", label:"Torf/Gyttja/Humus",  desc:"organische Böden [2]" },
+    ]
+  },
+
+  /* KALKGEHALT – Tabelle 7 [1] + Tabelle 4 [2] */
+  kalk: {
+    label: "Kalkgehalt (HCl-Probe)",
+    multi: false,
+    items: [
+      { code:"k0", label:"nicht kalkhaltig",          desc:"< 1 %, kein Aufbrausen" },
+      { code:"k1", label:"leicht kalkhaltig",         desc:"1–5 %, schwaches Aufbrausen" },
+      { code:"k2", label:"kalkhaltig",                desc:"5–25 %, deutliches Aufbrausen" },
+      { code:"k3", label:"sehr kalkhaltig",           desc:"25–50 %, starkes Aufbrausen" },
+      { code:"k4", label:"sehr stark kalkhaltig",     desc:"> 50 %, anhaltendes Aufbrausen" },
+    ]
+  },
+};
+
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
+let layers = [];
+let layerCounter = 0;
+
+/* ═══════════════════════════════════════════════
+   SECTION TOGGLE
+═══════════════════════════════════════════════ */
+function toggleSection(id) {
+  const body    = document.getElementById(`body-${id}`);
+  const chevron = document.getElementById(`chevron-${id}`);
+  body.classList.toggle('open');
+  chevron.classList.toggle('open');
+}
+
+/* ═══════════════════════════════════════════════
+   LAYER MANAGEMENT
+═══════════════════════════════════════════════ */
+function addLayer() {
+  layerCounter++;
+  const id = layerCounter;
+  const layer = {
+    id,
+    collapsed: false,
+    data: { tiefe_von: '', tiefe_bis: '' }
+  };
+  // defaults for all chip categories
+  Object.keys(ISO).forEach(k => {
+    if (ISO[k].multi) layer.data[k] = [];
+    else              layer.data[k] = null;
+  });
+  layers.push(layer);
+  renderLayers();
+  // auto-open new layer
+  setTimeout(() => {
+    const el = document.getElementById(`layer-body-${id}`);
+    if (el) el.classList.add('open');
+    const ch = document.getElementById(`lchevron-${id}`);
+    if (ch) ch.classList.add('open');
+  }, 50);
+}
+
+function deleteLayer(id) {
+  layers = layers.filter(l => l.id !== id);
+  renderLayers();
+  showToast('Schicht gelöscht');
+}
+
+function toggleLayer(id) {
+  const body    = document.getElementById(`layer-body-${id}`);
+  const chevron = document.getElementById(`lchevron-${id}`);
+  const card    = document.getElementById(`layer-card-${id}`);
+  body.classList.toggle('open');
+  chevron.classList.toggle('open');
+  card.classList.toggle('active', body.classList.contains('open'));
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER LAYERS
+═══════════════════════════════════════════════ */
+function renderLayers() {
+  const container = document.getElementById('layers-container');
+  const noLayers  = document.getElementById('no-layers');
+  noLayers.style.display = layers.length === 0 ? 'block' : 'none';
+
+  container.innerHTML = '';
+  layers.forEach(layer => {
+    container.appendChild(buildLayerCard(layer));
+  });
+}
+
+function buildLayerCard(layer) {
+  const wrap = document.createElement('div');
+  wrap.className = 'layer-card';
+  wrap.id = `layer-card-${layer.id}`;
+
+  // Summary
+  const von = layer.data.tiefe_von || '?';
+  const bis = layer.data.tiefe_bis || '?';
+  const kg  = layer.data.korngross ? ISO.korngross.items.find(x=>x.code===layer.data.korngross)?.label || '–' : '–';
+
+  wrap.innerHTML = `
+    <div class="layer-topbar" onclick="toggleLayer(${layer.id})">
+      <span class="layer-badge">S${layer.id}</span>
+      <span class="layer-summary"><strong>${von}–${bis} m</strong> &nbsp;${kg}</span>
+      <div class="layer-controls">
+        <button class="btn-del" onclick="event.stopPropagation();deleteLayer(${layer.id})" title="Schicht löschen">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+            <path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+          </svg>
+        </button>
+        <svg class="layer-chevron open" id="lchevron-${layer.id}" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </div>
+    </div>
+    <div class="layer-body open" id="layer-body-${layer.id}">
+      ${buildLayerForm(layer)}
+    </div>
+  `;
+  return wrap;
+}
+
+function buildLayerForm(layer) {
+  const id = layer.id;
+
+  // Tiefe
+  let html = `
+    <div class="depth-row">
+      <div class="form-group">
+        <label class="form-label">Tiefe von (m)</label>
+        <input type="number" step="0.01" min="0" id="l${id}-von" value="${layer.data.tiefe_von}"
+          oninput="setDepth(${id},'tiefe_von',this.value)" placeholder="0.00">
+      </div>
+      <div class="depth-sep">→</div>
+      <div class="form-group">
+        <label class="form-label">Tiefe bis (m)</label>
+        <input type="number" step="0.01" min="0" id="l${id}-bis" value="${layer.data.tiefe_bis}"
+          oninput="setDepth(${id},'tiefe_bis',this.value)" placeholder="1.50">
+      </div>
+    </div>
+  `;
+
+  // All chip sections in order
+  const order = [
+    'korngross','nebenanteil','koenung',
+    'wasser','kornform',
+    'konsistenz','lagerung',
+    'plastizitaet','trockenfest',
+    'organisch','kalk'
+  ];
+
+  order.forEach(key => {
+    const cat = ISO[key];
+    html += buildChipSection(id, key, cat, layer.data);
+  });
+
+  // Freitext / Bemerkung
+  html += `
+    <div class="divider"></div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">Bemerkung / Sonderbefund</label>
+      <textarea id="l${id}-note" rows="2" style="resize:vertical;"
+        oninput="setNote(${id},this.value)"
+        placeholder="z.B. Holzreste, Geruch, Grundwassereintritt ...">${layer.data.note||''}</textarea>
+    </div>
+    <div class="generated-label">🧾 Generierte Ansprache (ISO 14688)</div>
+    <div class="generated-box" id="gen-${id}">–</div>
+  `;
+
+  return html;
+}
+
+function buildChipSection(lid, key, cat, data) {
+  let selected = data[key];
+  const selLabel = cat.multi
+    ? (selected.length ? selected.map(c => ISO[key].items.find(x=>x.code===c)?.label||c).join(', ') : '')
+    : (selected ? (ISO[key].items.find(x=>x.code===selected)?.label||'') : '');
+
+  let html = `
+    <div class="chip-section">
+      <div class="chip-label">
+        ${cat.label}
+        ${selLabel ? `<span class="selected-val">${selLabel}</span>` : ''}
+      </div>
+      <div class="chip-group">
+  `;
+  cat.items.forEach(item => {
+    const isSelected = cat.multi ? selected.includes(item.code) : selected === item.code;
+    html += `
+      <div class="chip${cat.multi?' multi':''}${isSelected?' selected':''}"
+        title="${item.desc||item.label}"
+        onclick="selectChip(${lid},'${key}','${item.code}',${cat.multi})">
+        ${item.label}${item.code.match(/^[A-Z]/) && !cat.multi ? ` <small style="opacity:.6">${item.code}</small>` : ''}
+      </div>
+    `;
+  });
+  html += `</div></div>`;
+  return html;
+}
+
+/* ═══════════════════════════════════════════════
+   DATA HANDLERS
+═══════════════════════════════════════════════ */
+function setDepth(id, field, val) {
+  const layer = layers.find(l => l.id === id);
+  if (!layer) return;
+  layer.data[field] = val;
+  updateSummary(id);
+  updateGenerated(id);
+}
+
+function setNote(id, val) {
+  const layer = layers.find(l => l.id === id);
+  if (!layer) return;
+  layer.data.note = val;
+  updateGenerated(id);
+}
+
+function selectChip(lid, key, code, multi) {
+  const layer = layers.find(l => l.id === lid);
+  if (!layer) return;
+
+  if (multi) {
+    if (layer.data[key].includes(code)) {
+      layer.data[key] = layer.data[key].filter(c => c !== code);
+    } else {
+      layer.data[key] = [...layer.data[key], code];
+    }
+  } else {
+    layer.data[key] = (layer.data[key] === code) ? null : code;
+  }
+
+  // Re-render only chip section + generated text
+  const body = document.getElementById(`layer-body-${lid}`);
+  if (body) {
+    body.innerHTML = buildLayerForm(layer);
+    updateGenerated(lid);
+  }
+  updateSummary(lid);
+}
+
+/* ═══════════════════════════════════════════════
+   UPDATE SUMMARY BAR
+═══════════════════════════════════════════════ */
+function updateSummary(id) {
+  const layer = layers.find(l => l.id === id);
+  if (!layer) return;
+  const sum = document.querySelector(`#layer-card-${id} .layer-summary`);
+  if (!sum) return;
+  const von = layer.data.tiefe_von || '?';
+  const bis = layer.data.tiefe_bis || '?';
+  const kg  = layer.data.korngross ? ISO.korngross.items.find(x=>x.code===layer.data.korngross)?.label || '–' : '–';
+  sum.innerHTML = `<strong>${von}–${bis} m</strong> &nbsp;${kg}`;
+}
+
+/* ═══════════════════════════════════════════════
+   GENERATE ISO DESCRIPTION TEXT
+═══════════════════════════════════════════════ */
+function generateText(d) {
+  const parts = [];
+
+  // Neben-/Drittanteile (als Adjektive)
+  if (d.nebenanteil && d.nebenanteil.length) {
+    parts.push(d.nebenanteil.map(c => ISO.nebenanteil.items.find(x=>x.code===c)?.label||c).join(', '));
+  }
+
+  // Hauptanteil (als Substantiv, GROSSBUCHSTABEN)
+  if (d.korngross) {
+    const item = ISO.korngross.items.find(x=>x.code===d.korngross);
+    if (item) parts.push(item.label.toUpperCase() + ` (${item.code})`);
+  }
+
+  // Körnungslinie
+  if (d.koenung) {
+    parts.push(`[${d.koenung}]`);
+  }
+
+  // Wasser
+  if (d.wasser) {
+    const w = ISO.wasser.items.find(x=>x.code===d.wasser);
+    if (w) parts.push(w.label);
+  }
+
+  // Kornform
+  if (d.kornform) {
+    const k = ISO.kornform.items.find(x=>x.code===d.kornform);
+    if (k) parts.push(k.label);
+  }
+
+  // Konsistenz
+  if (d.konsistenz) {
+    const k = ISO.konsistenz.items.find(x=>x.code===d.konsistenz);
+    if (k) parts.push(`Kons.: ${k.label}`);
+  }
+
+  // Lagerungsdichte
+  if (d.lagerung) {
+    const l = ISO.lagerung.items.find(x=>x.code===d.lagerung);
+    if (l) parts.push(`Lag.: ${l.label}`);
+  }
+
+  // Plastizität
+  if (d.plastizitaet) {
+    const p = ISO.plastizitaet.items.find(x=>x.code===d.plastizitaet);
+    if (p) parts.push(`Plast.: ${p.label}`);
+  }
+
+  // Trockenfestigkeit
+  if (d.trockenfest) {
+    const t = ISO.trockenfest.items.find(x=>x.code===d.trockenfest);
+    if (t) parts.push(`TF: ${t.label}`);
+  }
+
+  // Organisch
+  if (d.organisch && d.organisch !== 'org0') {
+    const o = ISO.organisch.items.find(x=>x.code===d.organisch);
+    if (o) parts.push(o.label);
+  }
+
+  // Kalk
+  if (d.kalk && d.kalk !== 'k0') {
+    const k = ISO.kalk.items.find(x=>x.code===d.kalk);
+    if (k) parts.push(k.label);
+  }
+
+  // Bemerkung
+  if (d.note && d.note.trim()) parts.push(`(${d.note.trim()})`);
+
+  return parts.length ? parts.join(' · ') : '–';
+}
+
+function updateGenerated(id) {
+  const layer = layers.find(l => l.id === id);
+  const el = document.getElementById(`gen-${id}`);
+  if (!layer || !el) return;
+  el.textContent = generateText(layer.data);
+}
+
+/* ═══════════════════════════════════════════════
+   EXPORT / MODAL
+═══════════════════════════════════════════════ */
+function buildReport() {
+  const p = {
+    name:        document.getElementById('proj-name')?.value || '',
+    ag:          document.getElementById('proj-ag')?.value   || '',
+    kst:         document.getElementById('proj-kst')?.value  || '',
+    bhnr:        document.getElementById('proj-bhnr')?.value || '',
+    machine:     document.getElementById('proj-machine')?.value  || '',
+    bohrmeister: document.getElementById('proj-bohrmeister')?.value || '',
+    verfasser:   document.getElementById('proj-verfasser')?.value   || '',
+    datum:       document.getElementById('proj-datum')?.value || '',
+    start:       document.getElementById('proj-start')?.value || '',
+    end:         document.getElementById('proj-end')?.value   || '',
+  };
+
+  let txt = '';
+  txt += `═════════════════════════════════════════════════\n`;
+  txt += `  BOHRKERNANSPRACHE\n`;
+  txt += `  ÖNORM EN ISO 14688-1/2 | Geotechnik\n`;
+  txt += `═════════════════════════════════════════════════\n\n`;
+  txt += `PROJEKT:       ${p.name}\n`;
+  txt += `AUFTRAGGEBER:  ${p.ag}\n`;
+  txt += `KOSTENSTELLE:  ${p.kst}\n`;
+  txt += `BOHRLOCHNR.:   ${p.bhnr}\n`;
+  txt += `MASCHINE:      ${p.machine}\n`;
+  txt += `BOHRMEISTER:   ${p.bohrmeister}\n`;
+  txt += `VERFASSER:     ${p.verfasser}\n`;
+  txt += `DATUM:         ${p.datum}\n`;
+  txt += `BOHRBEGINN:    ${p.start}\n`;
+  txt += `BOHRENDE:      ${p.end}\n\n`;
+
+  txt += `─────────────────────────────────────────────────\n`;
+  txt += `  SCHICHTPROFIL (${layers.length} Schichten)\n`;
+  txt += `─────────────────────────────────────────────────\n\n`;
+
+  if (layers.length === 0) {
+    txt += '(Keine Schichten erfasst)\n';
+  } else {
+    layers.forEach(layer => {
+      const d = layer.data;
+      const von = d.tiefe_von || '?';
+      const bis = d.tiefe_bis || '?';
+      txt += `▶ Schicht ${layer.id}: ${von} m – ${bis} m\n`;
+      txt += `  Ansprache: ${generateText(d)}\n\n`;
+    });
+  }
+
+  txt += `─────────────────────────────────────────────────\n`;
+  txt += `Erstellt: ${new Date().toLocaleString('de-AT')}\n`;
+  txt += `Norm: ÖNORM EN ISO 14688-1:2019-10, EN ISO 14688-2:2019-10\n`;
+  return txt;
+}
+
+function buildCSV() {
+  const rows = [['Schicht','Tiefe_von_m','Tiefe_bis_m','Hauptanteil','Nebenanteil','Koernungslinie','Wasser','Kornform','Konsistenz','Lagerungsdichte','Plastizitaet','Trockenfestigkeit','Organisch','Kalk','Bemerkung','Ansprache']];
+  const p = item => item ? item.label : '';
+  const pm = (arr, key) => arr.map(c => ISO[key].items.find(x=>x.code===c)?.label||c).join('; ');
+
+  layers.forEach(l => {
+    const d = l.data;
+    rows.push([
+      l.id,
+      d.tiefe_von || '',
+      d.tiefe_bis || '',
+      d.korngross ? ISO.korngross.items.find(x=>x.code===d.korngross)?.label || '' : '',
+      d.nebenanteil && d.nebenanteil.length ? pm(d.nebenanteil,'nebenanteil') : '',
+      d.koenung || '',
+      d.wasser ? ISO.wasser.items.find(x=>x.code===d.wasser)?.label||'' : '',
+      d.kornform ? ISO.kornform.items.find(x=>x.code===d.kornform)?.label||'' : '',
+      d.konsistenz ? ISO.konsistenz.items.find(x=>x.code===d.konsistenz)?.label||'' : '',
+      d.lagerung ? ISO.lagerung.items.find(x=>x.code===d.lagerung)?.label||'' : '',
+      d.plastizitaet ? ISO.plastizitaet.items.find(x=>x.code===d.plastizitaet)?.label||'' : '',
+      d.trockenfest ? ISO.trockenfest.items.find(x=>x.code===d.trockenfest)?.label||'' : '',
+      d.organisch ? ISO.organisch.items.find(x=>x.code===d.organisch)?.label||'' : '',
+      d.kalk ? ISO.kalk.items.find(x=>x.code===d.kalk)?.label||'' : '',
+      d.note || '',
+      generateText(d),
+    ]);
+  });
+  return rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+}
+
+function openExport() {
+  document.getElementById('modal-content').textContent = buildReport();
+  document.getElementById('modal-export').classList.add('open');
+}
+function closeExport() {
+  document.getElementById('modal-export').classList.remove('open');
+}
+function downloadTXT() {
+  download('Bohrkernansprache.txt', buildReport(), 'text/plain');
+  showToast('Protokoll gespeichert ✓');
+}
+function downloadCSV() {
+  download('Bohrkernansprache.csv', buildCSV(), 'text/csv');
+  showToast('CSV gespeichert ✓');
+}
+function download(name, content, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type }));
+  a.download = name;
+  a.click();
+}
+function copyToClipboard() {
+  navigator.clipboard.writeText(buildReport()).then(() => showToast('In Zwischenablage kopiert ✓'));
+}
+
+/* ═══════════════════════════════════════════════
+   RESET
+═══════════════════════════════════════════════ */
+function resetAll() {
+  if (!confirm('Wirklich alle Daten zurücksetzen?')) return;
+  layers = [];
+  layerCounter = 0;
+  ['proj-name','proj-ag','proj-kst','proj-bhnr','proj-machine',
+   'proj-bohrmeister','proj-verfasser','proj-datum','proj-start','proj-end']
+    .forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  renderLayers();
+  showToast('Zurückgesetzt');
+}
+
+/* ═══════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
+document.getElementById('proj-datum').value = new Date().toISOString().split('T')[0];
+
+// Close modal on overlay click
+document.getElementById('modal-export').addEventListener('click', function(e) {
+  if (e.target === this) closeExport();
+});
+</script>
+</body>
+</html>

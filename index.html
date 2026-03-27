@@ -7,26 +7,26 @@
 
   <title>Bohrkernansprache ISO 14688</title>
 
-  <!-- PWA Manifest (Android/Chrome etc.) -->
-  <link rel="manifest" href="manifest.webmanifest">
-
-  <!-- iOS: "Add to Home Screen" Optimierungen -->
+  <!-- iOS & Android Meta -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Bohrkern" />
 
-  <!-- Icons -->
-  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
-  <!-- optional iOS Splash (ohne: iOS nutzt Default) -->
-
-  <link rel="stylesheet" href="css/style.css" />
+  <!-- 1. WICHTIG: Überall ./ vor den Pfaden ergänzt -->
+  <link rel="stylesheet" href="./css/style.css" />
+  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+  
+  <!-- Optionales Manifest (falls du es angelegt hast) -->
+  <!-- <link rel="manifest" href="./manifest.webmanifest"> -->
+  
+  <!-- 2. WICHTIG: defer hinzugefügt, damit das Handy erst lädt, wenn das HTML fertig ist -->
+  <script src="./js/app.js" defer></script>
 </head>
 
 <body>
   <header>
     <div class="logo-container">
-      <img src="assets/icon.svg" alt="Firmenlogo" width="44" height="44" />
+      <img src="./assets/icon.svg" alt="Firmenlogo" width="44" height="44" />
     </div>
     <h1>ISO 14688 Bohrkernansprache</h1>
   </header>
@@ -68,13 +68,5 @@
     <button class="btn btn-primary" onclick="copyToClipboard()">📋 Kopieren</button>
   </div>
 
-  <script src="js/app.js"></script>
-
-  <!-- Optional: Service Worker registrieren (offline + installierbar) -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
-    }
-  </script>
 </body>
 </html>

@@ -1,13 +1,13 @@
 {
-  "name": "Bohrkernansprache ISO 14688",
+  "name": "Bohrkernansprache",
   "short_name": "Bohrkern",
   "description": "Normkonforme Bohrkernansprache gem. ÖNORM EN ISO 14688",
-  "start_url": "/Bohrkernaufnahme/index.html",
+  "start_url": "./index.html",
   "scope": "/Bohrkernaufnahme/",
   "display": "standalone",
   "background_color": "#111111",
   "theme_color": "#111111",
-  "orientation": "portrait-primary",
+  "orientation": "portrait",
   "lang": "de",
   "icons": [
     {

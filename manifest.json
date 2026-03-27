@@ -1,15 +1,30 @@
 {
   "name": "Bohrkernansprache ISO 14688",
   "short_name": "Bohrkern",
-  "start_url": "./index.html",
-  "scope": "./",
+  "description": "Normkonforme Bohrkernansprache gem. ÖNORM EN ISO 14688",
+  "start_url": "/Bohrkernaufnahme/index.html",
+  "scope": "/Bohrkernaufnahme/",
   "display": "standalone",
   "background_color": "#111111",
   "theme_color": "#111111",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
+  "lang": "de",
   "icons": [
-    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "assets/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/Bohrkernaufnahme/assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/Bohrkernaufnahme/assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/Bohrkernaufnahme/assets/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

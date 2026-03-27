@@ -1,75 +1,84 @@
-/* ═══════════════════════════════════════════════════
-   SERVICE WORKER – Bohrkernansprache ISO 14688
-   Repo: GrMahtb/Bohrkernaufnahme
-   GitHub Pages: grmahtb.github.io/Bohrkernaufnahme/
-   ═══════════════════════════════════════════════════ */
+const CACHE_NAME = 'bohrkern-shell-v5';
 
-// ── WICHTIG: Version hochzählen um alten Cache zu löschen! ──
-const CACHE_NAME = 'bohrkern-v10';
-
-// ── Alle Dateien die offline verfügbar sein sollen ──
-const ASSETS = [
-  '/Bohrkernaufnahme/',
-  '/Bohrkernaufnahme/index.html',
-  '/Bohrkernaufnahme/css/style.css',
-  '/Bohrkernaufnahme/js/app.js',
-  '/Bohrkernaufnahme/assets/icon.svg',
-  '/Bohrkernaufnahme/manifest.webmanifest'
+const SHELL = [
+  './',
+  './index.html',
+  './css/style.css',
+  './js/app.js',
+  './assets/icon.svg',
+  './manifest.webmanifest'
 ];
 
-// ── Installation: Dateien in Cache legen ──
+// Install: cache was erreichbar ist (ohne Install-Fail bei fehlenden Dateien)
 self.addEventListener('install', (event) => {
-  console.log('[SW] Install – Cache wird befüllt');
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(ASSETS))
-      .then(() => self.skipWaiting())
-  );
-});
-
-// ── Aktivierung: Alte Caches löschen ──
-self.addEventListener('activate', (event) => {
-  console.log('[SW] Aktiviert – alte Caches werden gelöscht');
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => {
-            console.log('[SW] Lösche alten Cache:', key);
-            return caches.delete(key);
-          })
-      )
-    ).then(() => self.clients.claim())
-  );
-});
-
-// ── Fetch: Cache-first Strategie ──
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((cached) => {
-        if (cached) {
-          return cached;
-        }
-        return fetch(event.request)
-          .then((response) => {
-            // Nur gültige Antworten cachen
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseClone);
-            });
-            return response;
-          })
-          .catch(() => {
-            // Offline-Fallback: index.html ausliefern
-            if (event.request.mode === 'navigate') {
-              return caches.match('/Bohrkernaufnahme/index.html');
-            }
-          });
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await Promise.allSettled(
+      SHELL.map(async (url) => {
+        try {
+          const res = await fetch(url, { cache: 'no-store' });
+          if (res.ok) await cache.put(url, res.clone());
+        } catch (_) {}
       })
-  );
+    );
+    self.skipWaiting();
+  })());
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => (k !== CACHE_NAME ? caches.delete(k) : null)));
+    self.clients.claim();
+  })());
+});
+
+// Network-first für CSS/JS, damit Styles nie „stale/kaputt“ bleiben
+function isAssetRequest(req) {
+  const url = new URL(req.url);
+  return url.pathname.endsWith('.css') || url.pathname.endsWith('.js');
+}
+
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+
+  // Navigation: network-first, fallback auf cached index
+  if (req.mode === 'navigate') {
+    event.respondWith((async () => {
+      try {
+        const fresh = await fetch(req);
+        if (fresh && fresh.ok) return fresh;
+      } catch (_) {}
+      const cache = await caches.open(CACHE_NAME);
+      return (await cache.match('./index.html')) || Response.error();
+    })());
+    return;
+  }
+
+  // CSS/JS: network-first
+  if (isAssetRequest(req)) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      try {
+        const fresh = await fetch(req, { cache: 'no-store' });
+        if (fresh && fresh.ok) {
+          await cache.put(req, fresh.clone());
+          return fresh;
+        }
+      } catch (_) {}
+      return (await cache.match(req)) || fetch(req);
+    })());
+    return;
+  }
+
+  // Sonst: cache-first
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(req);
+    if (cached) return cached;
+
+    const fresh = await fetch(req);
+    if (fresh && fresh.ok) await cache.put(req, fresh.clone());
+    return fresh;
+  })());
 });

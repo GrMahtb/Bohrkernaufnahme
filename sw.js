@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bohrkern-v1';
+const CACHE_NAME = 'bohrkern-v2';
 const ASSETS = [
   './',
   './index.html',

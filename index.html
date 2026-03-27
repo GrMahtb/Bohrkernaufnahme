@@ -1,26 +1,4 @@
 <!DOCTYPE html>
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#111111" />
-
-  <title>Bohrkernansprache ISO 14688</title>
-
-  <!-- iOS Meta -->
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Bohrkern" />
-
-  <!-- Manifest & Icons -->
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
-
-  <!-- CSS – ./ ist entscheidend für GitHub Pages Unterordner! -->
-  <link rel="stylesheet" href="./css/style.css" />
-
-  <!-- JS mit defer – läuft erst wenn HTML vollständig geladen ist -->
-  <script src="./js/app.js" defer></script>
-</head>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
@@ -29,20 +7,15 @@
 
   <title>Bohrkernansprache ISO 14688</title>
 
-  <!-- iOS & Android Meta -->
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Bohrkern" />
-
-  <!-- 1. WICHTIG: Überall ./ vor den Pfaden ergänzt -->
-  <link rel="stylesheet" href="./css/style.css" />
+  <!-- Wichtig: ./ Pfade + Cache-Bust -->
+  <link rel="stylesheet" href="./css/style.css?v=20260327" />
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
-  
-  <!-- Optionales Manifest (falls du es angelegt hast) -->
-  <!-- <link rel="manifest" href="./manifest.webmanifest"> -->
-  
-  <!-- 2. WICHTIG: defer hinzugefügt, damit das Handy erst lädt, wenn das HTML fertig ist -->
-  <script src="./js/app.js" defer></script>
+
+  <!-- optional -->
+  <link rel="manifest" href="./manifest.webmanifest" />
+
+  <!-- defer: JS erst nach DOM -->
+  <script src="./js/app.js?v=20260327" defer></script>
 </head>
 
 <body>
@@ -90,5 +63,40 @@
     <button class="btn btn-primary" onclick="copyToClipboard()">📋 Kopieren</button>
   </div>
 
+  <script>
+    async function resetPWA() {
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const r of regs) await r.unregister();
+      }
+      if (window.caches) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+      // Query entfernen
+      const url = new URL(location.href);
+      url.searchParams.delete('reset');
+      location.replace(url.toString());
+    }
+
+    // ?reset=1 -> SW + Cache löschen (Android-Fix)
+    if (new URL(location.href).searchParams.get('reset') === '1') {
+      resetPWA();
+    } else {
+      // Service Worker registrieren (nur wenn sw.js erreichbar ist)
+      (async () => {
+        if (!('serviceWorker' in navigator)) return;
+        try {
+          const res = await fetch('./sw.js', { cache: 'no-store' });
+          if (!res.ok) return; // sw.js existiert nicht -> kein SW
+          const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+          reg.update?.();
+        } catch (e) {
+          // kein SW wenn etwas schiefgeht
+          console.log('SW nicht aktiv:', e);
+        }
+      })();
+    }
+  </script>
 </body>
 </html>

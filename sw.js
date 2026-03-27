@@ -5,7 +5,7 @@
    ═══════════════════════════════════════════════════ */
 
 // ── WICHTIG: Version hochzählen um alten Cache zu löschen! ──
-const CACHE_NAME = 'bohrkern-v5';
+const CACHE_NAME = 'bohrkern-v10';
 
 // ── Alle Dateien die offline verfügbar sein sollen ──
 const ASSETS = [

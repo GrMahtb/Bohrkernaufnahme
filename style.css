@@ -1,20 +1,31 @@
 /* ═══════════════════════════════════════════════
    BOHRKERNANSPRACHE APP – ISO 14688
    Corporate Design: Schwarz/Gelb – Dark Mode
+   Mobile-first · iOS & Android optimiert
    ═══════════════════════════════════════════════ */
 
 /* ── CSS Custom Properties ── */
 :root {
+    /* Corporate Design Colors */
     --bg:            #111111;
     --surface:       #1e1e1e;
     --surface-2:     #2c2c2c;
-    --primary:       #ffed00;   /* HTB/Swietelsky Gelb */
+    --primary:       #ffed00;
     --primary-dark:  #ccbe00;
     --text-main:     #ffffff;
     --text-muted:    #aaaaaa;
     --danger:        #ff5252;
     --border:        #333333;
     --radius:        8px;
+
+    /* ── NEU: iOS Safe-Area Insets ──────────────
+       Schützt vor Notch, Dynamic Island & Home-Indicator.
+       Werte kommen automatisch vom Gerät (default: 0px).
+       ─────────────────────────────────────────── */
+    --sat: env(safe-area-inset-top,    0px);
+    --sar: env(safe-area-inset-right,  0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left,   0px);
 }
 
 /* ── Reset & Base ── */
@@ -30,20 +41,30 @@ body {
     margin: 0;
     padding: 0;
     line-height: 1.5;
+
+    /* ── NEU: verhindert störenden Scroll-Bounce auf iOS ── */
+    overscroll-behavior: none;
 }
 
 /* ══════════════════════════════════════
    HEADER
+   – calc() schiebt den Inhalt unterhalb
+     der Notch / Dynamic Island (--sat)
    ══════════════════════════════════════ */
 header {
     background-color: var(--surface);
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
     border-bottom: 2px solid var(--primary);
     position: sticky;
     top: 0;
     z-index: 100;
+    display: flex;
+    align-items: center;
+
+    /* ── NEU: Safe-Area oben + links/rechts ── */
+    padding-top:    calc(14px + var(--sat));
+    padding-bottom: 14px;
+    padding-left:   calc(16px + var(--sal));
+    padding-right:  calc(16px + var(--sar));
 }
 
 .logo-container {
@@ -69,12 +90,17 @@ header h1 {
 
 /* ══════════════════════════════════════
    MAIN LAYOUT
+   – Platz unten: Aktionsleiste + Home-Indicator
    ══════════════════════════════════════ */
 main {
-    padding: 16px;
     max-width: 800px;
     margin: 0 auto;
-    padding-bottom: 110px; /* Platz für die fixe Aktionsleiste */
+
+    /* ── NEU: Safe-Area links/rechts + genug Platz für Aktionsleiste ── */
+    padding-top:    16px;
+    padding-left:   calc(16px + var(--sal));
+    padding-right:  calc(16px + var(--sar));
+    padding-bottom: calc(110px + var(--sab));
 }
 
 /* ══════════════════════════════════════
@@ -99,6 +125,9 @@ summary {
     align-items: center;
     user-select: none;
     list-style: none;
+
+    /* ── NEU: größerer Touch-Target für Finger ── */
+    min-height: 52px;
 }
 
 summary::marker,
@@ -114,7 +143,7 @@ summary:hover {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    min-width: 0;           /* verhindert Overflow in Flex */
+    min-width: 0;
 }
 
 .depth-summary {
@@ -186,6 +215,14 @@ input[type="time"] {
     font-family: inherit;
     font-size: 0.95rem;
     transition: border-color 0.2s;
+
+    /* ── NEU: iOS verhindert ungewolltes Zoom bei Fokus
+       wenn font-size < 16px – wir setzen 16px als Minimum ── */
+    font-size: max(16px, 0.95rem);
+
+    /* ── NEU: iOS Styling entfernen (kein Inset-Shadow) ── */
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 input:focus {
@@ -222,6 +259,14 @@ input:focus {
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s, color 0.15s;
     user-select: none;
+
+    /* ── NEU: Mindest Touch-Target 44×44px (Apple HIG) ── */
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+
+    /* ── NEU: kein Text-Highlight beim Antippen auf iOS ── */
+    -webkit-tap-highlight-color: transparent;
 }
 
 .chip:hover {
@@ -296,6 +341,11 @@ input:focus {
     justify-content: center;
     width: 100%;
     transition: background 0.2s, border-color 0.2s;
+
+    /* ── NEU: Touch-Optimierungen ── */
+    min-height: 48px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;   /* kein 300ms Delay auf iOS */
 }
 
 .btn:hover {
@@ -325,6 +375,11 @@ input:focus {
     font-family: inherit;
     transition: background 0.2s;
     width: auto;
+
+    /* ── NEU: Touch-Optimierungen ── */
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 
 .btn-danger:hover {
@@ -339,6 +394,8 @@ input:focus {
 
 /* ══════════════════════════════════════
    FIXE AKTIONSLEISTE (unten)
+   – calc() schiebt Inhalt über den
+     iPhone Home-Indicator (--sab)
    ══════════════════════════════════════ */
 .actions-bar {
     position: fixed;
@@ -346,12 +403,17 @@ input:focus {
     left: 0;
     right: 0;
     background: var(--surface);
-    padding: 12px 16px;
     border-top: 2px solid var(--primary);
     display: grid;
     grid-template-columns: 1fr;
     gap: 10px;
     z-index: 90;
+
+    /* ── NEU: Safe-Area – Home-Indicator + Seitenränder ── */
+    padding-top:    12px;
+    padding-bottom: calc(12px + var(--sab));
+    padding-left:   calc(16px + var(--sal));
+    padding-right:  calc(16px + var(--sar));
 }
 
 @media (min-width: 600px) {

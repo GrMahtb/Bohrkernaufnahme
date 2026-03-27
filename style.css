@@ -1,0 +1,361 @@
+/* ═══════════════════════════════════════════════
+   BOHRKERNANSPRACHE APP – ISO 14688
+   Corporate Design: Schwarz/Gelb – Dark Mode
+   ═══════════════════════════════════════════════ */
+
+/* ── CSS Custom Properties ── */
+:root {
+    --bg:            #111111;
+    --surface:       #1e1e1e;
+    --surface-2:     #2c2c2c;
+    --primary:       #ffed00;   /* HTB/Swietelsky Gelb */
+    --primary-dark:  #ccbe00;
+    --text-main:     #ffffff;
+    --text-muted:    #aaaaaa;
+    --danger:        #ff5252;
+    --border:        #333333;
+    --radius:        8px;
+}
+
+/* ── Reset & Base ── */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                 Helvetica, Arial, sans-serif;
+    background-color: var(--bg);
+    color: var(--text-main);
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+}
+
+/* ══════════════════════════════════════
+   HEADER
+   ══════════════════════════════════════ */
+header {
+    background-color: var(--surface);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid var(--primary);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo-container {
+    width: 44px;
+    height: 44px;
+    margin-right: 16px;
+    flex-shrink: 0;
+}
+
+.logo-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--primary);
+    letter-spacing: 0.02em;
+}
+
+/* ══════════════════════════════════════
+   MAIN LAYOUT
+   ══════════════════════════════════════ */
+main {
+    padding: 16px;
+    max-width: 800px;
+    margin: 0 auto;
+    padding-bottom: 110px; /* Platz für die fixe Aktionsleiste */
+}
+
+/* ══════════════════════════════════════
+   ACCORDIONS (details/summary)
+   ══════════════════════════════════════ */
+details {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+summary {
+    padding: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    list-style: none;
+}
+
+summary::marker,
+summary::-webkit-details-marker {
+    display: none;
+}
+
+summary:hover {
+    background: var(--surface-2);
+}
+
+.summary-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;           /* verhindert Overflow in Flex */
+}
+
+.depth-summary {
+    color: var(--primary);
+    font-size: 1.05rem;
+}
+
+.type-summary {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: normal;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 55vw;
+}
+
+.expand-icon {
+    font-size: 1.1rem;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+details[open] > summary .expand-icon {
+    transform: rotate(180deg);
+}
+
+.details-body {
+    padding: 16px;
+}
+
+/* ══════════════════════════════════════
+   PROJEKTDATEN – GRID
+   ══════════════════════════════════════ */
+.grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+@media (min-width: 600px) {
+    .grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* ══════════════════════════════════════
+   FORM-ELEMENTE
+   ══════════════════════════════════════ */
+label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="time"] {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 10px 12px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+/* ══════════════════════════════════════
+   CLICK-CHIPS
+   ══════════════════════════════════════ */
+.chip-group-label {
+    margin-top: 20px;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.chip {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    user-select: none;
+}
+
+.chip:hover {
+    border-color: var(--primary-dark);
+    background: #383838;
+}
+
+.chip.selected {
+    background: var(--primary);
+    color: #000000;
+    border-color: var(--primary);
+    font-weight: bold;
+}
+
+/* ══════════════════════════════════════
+   SCHICHT-SPEZIFISCHES LAYOUT
+   ══════════════════════════════════════ */
+.depth-inputs {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.depth-inputs input {
+    width: 110px;
+}
+
+.depth-separator {
+    padding-bottom: 10px;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+}
+
+/* Generierte ISO-Textvorschau */
+.preview-box {
+    background: #000000;
+    border-left: 4px solid var(--primary);
+    padding: 12px 16px;
+    margin-top: 24px;
+    border-radius: 0 4px 4px 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    word-wrap: break-word;
+    color: #cccccc;
+}
+
+/* Schicht-Header rechts */
+.layer-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════
+   BUTTONS
+   ══════════════════════════════════════ */
+.btn {
+    background: var(--surface-2);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.95rem;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.btn:hover {
+    background: var(--border);
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: #000000;
+    border-color: var(--primary);
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.btn-danger {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+    width: auto;
+}
+
+.btn-danger:hover {
+    background: rgba(255, 82, 82, 0.12);
+}
+
+/* Button „Neue Schicht" */
+.add-layer-btn {
+    margin-top: 16px;
+    margin-bottom: 30px;
+}
+
+/* ══════════════════════════════════════
+   FIXE AKTIONSLEISTE (unten)
+   ══════════════════════════════════════ */
+.actions-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    padding: 12px 16px;
+    border-top: 2px solid var(--primary);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    z-index: 90;
+}
+
+@media (min-width: 600px) {
+    .actions-bar {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+}

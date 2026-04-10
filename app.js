@@ -1173,7 +1173,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/Bohrkernaufnahme/sw.js?v=40').catch((err) => {
+    navigator.serviceWorker.register('/Bohrkernaufnahme/sw.js?v=70').catch((err) => {
       console.error('SW registration failed:', err);
     });
   }

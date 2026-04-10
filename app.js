@@ -1,9 +1,9 @@
 'use strict';
 
-console.log('HTB Bohrkernaufnahme loaded');
+console.log('HTB Bohrkernaufnahme v40 groups+quick loaded');
 
-const STORAGE_DRAFT = 'htb-bohrkern-14688-draft-v4';
-const STORAGE_HISTORY = 'htb-bohrkern-14688-history-v4';
+const STORAGE_DRAFT = 'htb-bohrkern-14688-draft-v40';
+const STORAGE_HISTORY = 'htb-bohrkern-14688-history-v40';
 const HISTORY_MAX = 40;
 
 const $ = (id) => document.getElementById(id);
@@ -61,6 +61,9 @@ const state = {
     location: '',
     device: '',
     note: ''
+  },
+  ui: {
+    quickMode: true
   },
   layers: []
 };
@@ -144,7 +147,13 @@ function defaultLayer(index = 0) {
     sampleNo: '',
     coreRun: '',
     recovery: '',
-    note: ''
+    note: '',
+    ui: {
+      grpBase: true,
+      grpName: true,
+      grpState: false,
+      grpReport: true
+    }
   };
 }
 
@@ -154,7 +163,11 @@ function hydrateLayer(layer, idx) {
     ...base,
     ...layer,
     secondary: Array.isArray(layer?.secondary) ? layer.secondary : [],
-    colors: Array.isArray(layer?.colors) ? layer.colors : []
+    colors: Array.isArray(layer?.colors) ? layer.colors : [],
+    ui: {
+      ...base.ui,
+      ...(layer?.ui || {})
+    }
   };
 }
 
@@ -172,10 +185,10 @@ function saveDraft() {
   } catch {}
 }
 
-let _saveT = null;
+let saveTimer = null;
 function saveDraftDebounced() {
-  clearTimeout(_saveT);
-  _saveT = setTimeout(saveDraft, 250);
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveDraft, 250);
 }
 
 function loadDraft() {
@@ -184,6 +197,7 @@ function loadDraft() {
     if (!raw) return;
     const parsed = JSON.parse(raw);
     if (parsed?.meta) state.meta = { ...state.meta, ...parsed.meta };
+    if (parsed?.ui) state.ui = { ...state.ui, ...parsed.ui };
     if (Array.isArray(parsed?.layers) && parsed.layers.length) {
       state.layers = parsed.layers.map((l, i) => hydrateLayer(l, i));
     }
@@ -221,10 +235,12 @@ function saveCurrentToHistory() {
 function applyState(snapshot) {
   if (!snapshot) return;
   state.meta = { ...state.meta, ...(snapshot.meta || {}) };
+  state.ui = { ...state.ui, ...(snapshot.ui || {}) };
   state.layers = Array.isArray(snapshot.layers) && snapshot.layers.length
     ? snapshot.layers.map((l, i) => hydrateLayer(l, i))
     : [defaultLayer(0)];
   syncMetaToUi();
+  syncQuickModeUi();
   renderLayers();
   renderHistoryList();
   saveDraftDebounced();
@@ -250,6 +266,24 @@ function collectMetaFromUi() {
   state.meta.note = $('meta-note').value || '';
 }
 
+function syncQuickModeUi() {
+  const btn = $('btnQuickMode');
+  const hint = $('quickModeHint');
+  if (!btn) return;
+
+  const on = !!state.ui.quickMode;
+  btn.textContent = on ? 'Schnellmodus: EIN' : 'Schnellmodus: AUS';
+  btn.setAttribute('aria-pressed', String(on));
+  btn.classList.toggle('btn--accent', on);
+  btn.classList.toggle('btn--ghost', !on);
+
+  if (hint) {
+    hint.textContent = on
+      ? 'Schnellmodus aktiv: sichtbar sind nur die wichtigsten Felder. Für Proben-Nr., Kernlauf, Kalk, Wasser etc. den Schnellmodus ausschalten.'
+      : 'Schnellmodus aus: alle Detailfelder einer Schicht sind sichtbar.';
+  }
+}
+
 function chipHtml({ layerId, field, value, active, soft = false }) {
   return `
     <button
@@ -273,9 +307,280 @@ function selectHtml({ layerId, field, options, value, label }) {
   `;
 }
 
+function getStateMode(layer) {
+  const fam = getFamilyByMain(layer.main1);
+
+  if (['gravel', 'sand', 'stone', 'block'].includes(fam)) {
+    return {
+      label: 'Lagerungsdichte',
+      options: COARSE_STATE_OPTIONS
+    };
+  }
+
+  if (['silt', 'clay', 'peat', 'humus'].includes(fam)) {
+    return {
+      label: 'Konsistenz',
+      options: FINE_STATE_OPTIONS
+    };
+  }
+
+  return {
+    label: 'Lagerungsdichte / Konsistenz',
+    options: [...COARSE_STATE_OPTIONS, ...FINE_STATE_OPTIONS]
+  };
+}
+
+function basisSummary(layer) {
+  const parts = [];
+  if (layer.from || layer.to) parts.push(`${fmtDepth(layer.from) || '—'}–${fmtDepth(layer.to) || '—'} m`);
+  if (layer.tool) parts.push(layer.tool);
+  if (layer.sampleNo) parts.push(`Probe ${layer.sampleNo}`);
+  if (layer.recovery) parts.push(`${layer.recovery} %`);
+  return parts.join(' · ') || 'Tiefe und Kerndaten';
+}
+
+function namingSummary(layer) {
+  return shortDescription(layer) || 'Bodenbenennung wählen';
+}
+
+function stateSummary(layer) {
+  const parts = [];
+  if (layer.state) parts.push(layer.state);
+  if (layer.colors?.length) parts.push(layer.colors.join(', '));
+  if (layer.organic) parts.push(layer.organic);
+  if (layer.calc && layer.calc !== 'nicht kalkhaltig') parts.push(layer.calc);
+  if (layer.water) parts.push(layer.water);
+  return parts.join(' · ') || 'Zustand und Zusatzangaben';
+}
+
+function reportSummary(layer) {
+  if (layer.note) return layer.note;
+  return fullDescription(layer) || 'Beschreibung und Notiz';
+}
+
+function subAccHtml({ layer, group, title, meta, body }) {
+  const isOpen = !!layer.ui?.[group];
+  return `
+    <details class="subAcc" data-id="${h(layer.id)}" data-group="${h(group)}" ${isOpen ? 'open' : ''}>
+      <summary>
+        <div class="subAcc__head">
+          <span class="subAcc__title">${h(title)}</span>
+          <span class="subAcc__meta">${h(meta || '')}</span>
+        </div>
+      </summary>
+      <div class="subAcc__body">
+        ${body}
+      </div>
+    </details>
+  `;
+}
+
+function baseGroupHtml(layer, quick) {
+  return `
+    <div class="form-grid">
+      <label class="field">
+        <span class="field__label">Von [m]</span>
+        <input class="field__input" type="number" step="0.01" data-field="from" data-id="${h(layer.id)}" value="${h(layer.from || '')}" />
+      </label>
+
+      <label class="field">
+        <span class="field__label">Bis [m]</span>
+        <input class="field__input" type="number" step="0.01" data-field="to" data-id="${h(layer.id)}" value="${h(layer.to || '')}" />
+      </label>
+
+      ${selectHtml({
+        layerId: layer.id,
+        field: 'tool',
+        options: TOOL_OPTIONS,
+        value: layer.tool || '',
+        label: 'Werkzeug / Verfahren'
+      })}
+
+      ${quick ? '' : `
+        <label class="field">
+          <span class="field__label">Proben-Nr.</span>
+          <input class="field__input" type="text" data-field="sampleNo" data-id="${h(layer.id)}" value="${h(layer.sampleNo || '')}" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Kernlauf</span>
+          <input class="field__input" type="text" data-field="coreRun" data-id="${h(layer.id)}" value="${h(layer.coreRun || '')}" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Kerngewinnung [%]</span>
+          <input class="field__input" type="number" step="1" min="0" max="100" data-field="recovery" data-id="${h(layer.id)}" value="${h(layer.recovery || '')}" />
+        </label>
+      `}
+    </div>
+  `;
+}
+
+function namingGroupHtml(layer, quick) {
+  return `
+    <div class="choiceBlock">
+      <div class="choiceLabel">Hauptanteil</div>
+      <div class="chips">
+        ${MAIN_OPTIONS.map(x => chipHtml({
+          layerId: layer.id,
+          field: 'main1',
+          value: x.value,
+          active: layer.main1 === x.value
+        })).join('')}
+      </div>
+    </div>
+
+    ${quick ? '' : `
+      <div class="choiceBlock">
+        <div class="choiceLabel">2. Hauptanteil optional</div>
+        <div class="chips">
+          ${MAIN_OPTIONS.map(x => chipHtml({
+            layerId: layer.id,
+            field: 'main2',
+            value: x.value,
+            active: layer.main2 === x.value,
+            soft: true
+          })).join('')}
+        </div>
+      </div>
+    `}
+
+    <div class="choiceBlock">
+      <div class="choiceLabel">Nebenanteile</div>
+      <div class="chips">
+        ${SECONDARY_OPTIONS.map(v => chipHtml({
+          layerId: layer.id,
+          field: 'secondary',
+          value: v,
+          active: (layer.secondary || []).includes(v),
+          soft: true
+        })).join('')}
+      </div>
+    </div>
+
+    <div class="choiceBlock">
+      <div class="choiceLabel">Kornklasse ${quick ? '' : 'optional'}</div>
+      <div class="chips">
+        ${GRAIN_OPTIONS.map(v => chipHtml({
+          layerId: layer.id,
+          field: 'grain',
+          value: v.value,
+          active: layer.grain === v.value
+        })).join('')}
+      </div>
+    </div>
+
+    <div class="smartHint">
+      Hinweis: Bei annähernd gleichen Hauptanteilen kann ein Schrägstrich verwendet werden, z. B. KIES/SAND.
+    </div>
+  `;
+}
+
+function stateGroupHtml(layer, quick) {
+  const mode = getStateMode(layer);
+
+  return `
+    <div class="choiceBlock">
+      <div class="choiceLabel">${h(mode.label)}</div>
+      <div class="chips">
+        ${mode.options.map(v => chipHtml({
+          layerId: layer.id,
+          field: 'state',
+          value: v,
+          active: layer.state === v,
+          soft: FINE_STATE_OPTIONS.includes(v)
+        })).join('')}
+      </div>
+    </div>
+
+    <div class="choiceBlock">
+      <div class="choiceLabel">Farbe</div>
+      <div class="chips">
+        ${COLOR_OPTIONS.map(v => chipHtml({
+          layerId: layer.id,
+          field: 'colors',
+          value: v,
+          active: (layer.colors || []).includes(v),
+          soft: true
+        })).join('')}
+      </div>
+    </div>
+
+    ${quick ? '' : `
+      <div class="groupDivider"></div>
+
+      <div class="choiceBlock">
+        <div class="choiceLabel">Organischer Anteil</div>
+        <div class="chips">
+          ${ORGANIC_OPTIONS.filter(Boolean).map(v => chipHtml({
+            layerId: layer.id,
+            field: 'organic',
+            value: v,
+            active: layer.organic === v
+          })).join('')}
+        </div>
+      </div>
+
+      <div class="choiceBlock">
+        <div class="choiceLabel">Kalkgehalt</div>
+        <div class="chips">
+          ${CALC_OPTIONS.filter(Boolean).map(v => chipHtml({
+            layerId: layer.id,
+            field: 'calc',
+            value: v,
+            active: layer.calc === v
+          })).join('')}
+        </div>
+      </div>
+
+      <div class="choiceBlock">
+        <div class="choiceLabel">Wasserzustand</div>
+        <div class="chips">
+          ${WATER_OPTIONS.filter(Boolean).map(v => chipHtml({
+            layerId: layer.id,
+            field: 'water',
+            value: v,
+            active: layer.water === v
+          })).join('')}
+        </div>
+      </div>
+    `}
+  `;
+}
+
+function reportGroupHtml(layer, quick) {
+  const full = fullDescription(layer) || 'Noch keine normnahe Beschreibung ausgewählt.';
+  const short = shortDescription(layer) || 'Beschreibung wählen';
+
+  return `
+    <div class="choiceBlock">
+      <div class="choiceLabel">Kurzbeschreibung nach Norm</div>
+      <div class="readonly js-short-desc">${h(short)}</div>
+    </div>
+
+    <div class="choiceBlock">
+      <div class="choiceLabel">Detailbeschreibung</div>
+      <div class="readonly js-full-desc">${h(full)}</div>
+    </div>
+
+    <div class="choiceBlock">
+      <label class="field">
+        <span class="field__label">Bemerkung</span>
+        <textarea class="field__textarea" data-field="note" data-id="${h(layer.id)}">${h(layer.note || '')}</textarea>
+      </label>
+    </div>
+
+    ${quick ? '' : `
+      <div class="smartHint">
+        Diese Texte werden direkt für PDF und GeODin-CSV verwendet.
+      </div>
+    `}
+  `;
+}
+
 function layerCardHtml(layer, idx, isOpen = false) {
+  const quick = !!state.ui.quickMode;
   const descShort = shortDescription(layer) || 'Beschreibung wählen';
-  const descFull = fullDescription(layer) || 'Noch keine normnahe Beschreibung ausgewählt.';
   const summaryRange = `${fmtDepth(layer.from) || '—'} – ${fmtDepth(layer.to) || '—'} m`;
 
   return `
@@ -285,179 +590,48 @@ function layerCardHtml(layer, idx, isOpen = false) {
           <span>Schicht ${idx + 1}</span>
           <span class="layerCard__sub js-summary-range">${h(summaryRange)}</span>
           <span class="layerCard__sub js-summary-desc">${h(descShort)}</span>
+          ${quick ? `<span class="quickPill">Schnellmodus</span>` : ''}
         </div>
       </summary>
 
       <div class="layerBody">
-        <div class="form-grid">
-          <label class="field">
-            <span class="field__label">Von [m]</span>
-            <input class="field__input" type="number" step="0.01" data-field="from" data-id="${h(layer.id)}" value="${h(layer.from || '')}" />
-          </label>
-
-          <label class="field">
-            <span class="field__label">Bis [m]</span>
-            <input class="field__input" type="number" step="0.01" data-field="to" data-id="${h(layer.id)}" value="${h(layer.to || '')}" />
-          </label>
-
-          <label class="field">
-            <span class="field__label">Proben-Nr.</span>
-            <input class="field__input" type="text" data-field="sampleNo" data-id="${h(layer.id)}" value="${h(layer.sampleNo || '')}" />
-          </label>
-
-          <label class="field">
-            <span class="field__label">Kernlauf</span>
-            <input class="field__input" type="text" data-field="coreRun" data-id="${h(layer.id)}" value="${h(layer.coreRun || '')}" />
-          </label>
-
-          <label class="field">
-            <span class="field__label">Kerngewinnung [%]</span>
-            <input class="field__input" type="number" step="1" min="0" max="100" data-field="recovery" data-id="${h(layer.id)}" value="${h(layer.recovery || '')}" />
-          </label>
-
-          ${selectHtml({
-            layerId: layer.id,
-            field: 'tool',
-            options: TOOL_OPTIONS,
-            value: layer.tool || '',
-            label: 'Werkzeug / Verfahren'
-          })}
-        </div>
-
-        <div class="choiceBlock">
-          <div class="choiceLabel">Hauptanteil</div>
-          <div class="chips">
-            ${MAIN_OPTIONS.map(x => chipHtml({
-              layerId: layer.id,
-              field: 'main1',
-              value: x.value,
-              active: layer.main1 === x.value
-            })).join('')}
+        ${quick ? `
+          <div class="layerQuickNote">
+            Schnellmodus aktiv: nur die wichtigsten Felder sind sichtbar. Für alle Zusatzangaben oben den Schnellmodus ausschalten.
           </div>
-        </div>
+        ` : ''}
 
-        <div class="choiceBlock">
-          <div class="choiceLabel">2. Hauptanteil optional</div>
-          <div class="chips">
-            ${MAIN_OPTIONS.map(x => chipHtml({
-              layerId: layer.id,
-              field: 'main2',
-              value: x.value,
-              active: layer.main2 === x.value,
-              soft: true
-            })).join('')}
-          </div>
-        </div>
+        ${subAccHtml({
+          layer,
+          group: 'grpBase',
+          title: '1. Tiefe & Kerndaten',
+          meta: basisSummary(layer),
+          body: baseGroupHtml(layer, quick)
+        })}
 
-        <div class="choiceBlock">
-          <div class="choiceLabel">Nebenanteile</div>
-          <div class="chips">
-            ${SECONDARY_OPTIONS.map(v => chipHtml({
-              layerId: layer.id,
-              field: 'secondary',
-              value: v,
-              active: (layer.secondary || []).includes(v),
-              soft: true
-            })).join('')}
-          </div>
-        </div>
+        ${subAccHtml({
+          layer,
+          group: 'grpName',
+          title: '2. Bodenbenennung',
+          meta: namingSummary(layer),
+          body: namingGroupHtml(layer, quick)
+        })}
 
-        <div class="choiceBlock">
-          <div class="choiceLabel">Kornklasse optional</div>
-          <div class="chips">
-            ${GRAIN_OPTIONS.map(v => chipHtml({
-              layerId: layer.id,
-              field: 'grain',
-              value: v.value,
-              active: layer.grain === v.value
-            })).join('')}
-          </div>
-        </div>
+        ${subAccHtml({
+          layer,
+          group: 'grpState',
+          title: '3. Zustand & Zusatz',
+          meta: stateSummary(layer),
+          body: stateGroupHtml(layer, quick)
+        })}
 
-        <div class="choiceBlock">
-          <div class="choiceLabel">Lagerungsdichte / Konsistenz</div>
-          <div class="chips">
-            ${COARSE_STATE_OPTIONS.map(v => chipHtml({
-              layerId: layer.id,
-              field: 'state',
-              value: v,
-              active: layer.state === v
-            })).join('')}
-            ${FINE_STATE_OPTIONS.map(v => chipHtml({
-              layerId: layer.id,
-              field: 'state',
-              value: v,
-              active: layer.state === v,
-              soft: true
-            })).join('')}
-          </div>
-        </div>
-
-        <div class="choiceBlock">
-          <div class="choiceLabel">Farbe</div>
-          <div class="chips">
-            ${COLOR_OPTIONS.map(v => chipHtml({
-              layerId: layer.id,
-              field: 'colors',
-              value: v,
-              active: (layer.colors || []).includes(v),
-              soft: true
-            })).join('')}
-          </div>
-        </div>
-
-        <div class="choiceBlock">
-          <div class="choiceLabel">Organischer Anteil</div>
-          <div class="chips">
-            ${ORGANIC_OPTIONS.filter(Boolean).map(v => chipHtml({
-              layerId: layer.id,
-              field: 'organic',
-              value: v,
-              active: layer.organic === v
-            })).join('')}
-          </div>
-        </div>
-
-        <div class="choiceBlock">
-          <div class="choiceLabel">Kalkgehalt</div>
-          <div class="chips">
-            ${CALC_OPTIONS.filter(Boolean).map(v => chipHtml({
-              layerId: layer.id,
-              field: 'calc',
-              value: v,
-              active: layer.calc === v
-            })).join('')}
-          </div>
-        </div>
-
-        <div class="choiceBlock">
-          <div class="choiceLabel">Wasserzustand</div>
-          <div class="chips">
-            ${WATER_OPTIONS.filter(Boolean).map(v => chipHtml({
-              layerId: layer.id,
-              field: 'water',
-              value: v,
-              active: layer.water === v
-            })).join('')}
-          </div>
-        </div>
-
-        <div class="choiceBlock">
-          <div class="choiceLabel">Kurzbeschreibung nach Norm</div>
-          <div class="readonly js-short-desc">${h(descShort)}</div>
-        </div>
-
-        <div class="choiceBlock">
-          <div class="choiceLabel">Detailbeschreibung</div>
-          <div class="readonly js-full-desc">${h(descFull)}</div>
-        </div>
-
-        <div class="choiceBlock">
-          <label class="field">
-            <span class="field__label">Bemerkung</span>
-            <textarea class="field__textarea" data-field="note" data-id="${h(layer.id)}">${h(layer.note || '')}</textarea>
-          </label>
-        </div>
+        ${subAccHtml({
+          layer,
+          group: 'grpReport',
+          title: '4. Beschreibung & Notiz',
+          meta: reportSummary(layer),
+          body: reportGroupHtml(layer, quick)
+        })}
 
         <div class="layerActions">
           <button class="miniBtn" type="button" data-act="dup" data-id="${h(layer.id)}">Duplizieren</button>
@@ -483,7 +657,7 @@ function renderLayers(openIds = null) {
 function refreshLayerComputed(id) {
   const layer = getLayer(id);
   if (!layer) return;
-  const card = document.querySelector(`.layerCard[data-id="${CSS.escape(id)}"]`);
+  const card = document.querySelector(`.layerCard[data-id="${id}"]`);
   if (!card) return;
 
   const range = `${fmtDepth(layer.from) || '—'} – ${fmtDepth(layer.to) || '—'} m`;
@@ -499,6 +673,18 @@ function refreshLayerComputed(id) {
   if (sumEl) sumEl.textContent = s;
   if (shortEl) shortEl.textContent = s;
   if (fullEl) fullEl.textContent = f;
+
+  const subMeta = card.querySelectorAll('.subAcc');
+  subMeta.forEach(det => {
+    const group = det.dataset.group;
+    const metaEl = det.querySelector('.subAcc__meta');
+    if (!metaEl) return;
+
+    if (group === 'grpBase') metaEl.textContent = basisSummary(layer);
+    if (group === 'grpName') metaEl.textContent = namingSummary(layer);
+    if (group === 'grpState') metaEl.textContent = stateSummary(layer);
+    if (group === 'grpReport') metaEl.textContent = reportSummary(layer);
+  });
 }
 
 function renderHistoryList() {
@@ -784,6 +970,18 @@ function hookLayerEvents() {
   const host = $('layerList');
   if (!host) return;
 
+  host.addEventListener('toggle', (e) => {
+    const det = e.target;
+    if (!(det instanceof HTMLDetailsElement)) return;
+    if (!det.classList.contains('subAcc')) return;
+
+    const layer = getLayer(det.dataset.id);
+    if (!layer) return;
+    if (!layer.ui) layer.ui = {};
+    layer.ui[det.dataset.group] = det.open;
+    saveDraftDebounced();
+  }, true);
+
   host.addEventListener('click', (e) => {
     const chip = e.target.closest('[data-chip-field]');
     if (chip) {
@@ -794,7 +992,7 @@ function hookLayerEvents() {
       if (!layer) return;
 
       if (field === 'secondary' || field === 'colors') {
-        const arr = Array.isArray(layer[field]) ? layer[field] : [];
+        const arr = Array.isArray(layer[field]) ? [...layer[field]] : [];
         const idx = arr.indexOf(value);
         if (idx >= 0) arr.splice(idx, 1);
         else arr.push(value);
@@ -820,7 +1018,7 @@ function hookLayerEvents() {
     if (act.dataset.act === 'del') {
       if (!confirm('Schicht wirklich löschen?')) return;
       if (state.layers.length === 1) {
-        state.layers[0] = defaultLayer(0);
+        state.layers = [defaultLayer(0)];
       } else {
         state.layers = state.layers.filter(x => x.id !== id);
       }
@@ -922,12 +1120,20 @@ window.addEventListener('DOMContentLoaded', () => {
 
   initTabs();
   syncMetaToUi();
+  syncQuickModeUi();
   renderLayers();
   renderHistoryList();
   hookMetaEvents();
   hookLayerEvents();
   hookHistoryEvents();
   initInstallButton();
+
+  $('btnQuickMode')?.addEventListener('click', () => {
+    state.ui.quickMode = !state.ui.quickMode;
+    syncQuickModeUi();
+    renderLayers(getOpenIds());
+    saveDraftDebounced();
+  });
 
   $('btnAddLayer')?.addEventListener('click', () => {
     const lastTo = state.layers.length ? state.layers[state.layers.length - 1].to : 0;
@@ -967,6 +1173,8 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/Bohrkernaufnahme/sw.js?v=6').catch((err) => {
-  console.error('SW registration failed:', err);
+    navigator.serviceWorker.register('/Bohrkernaufnahme/sw.js?v=40').catch((err) => {
+      console.error('SW registration failed:', err);
+    });
+  }
 });

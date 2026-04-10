@@ -7,439 +7,138 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <meta name="apple-mobile-web-app-title" content="HTB Bohrkern" />
+
   <title>HTB Bohrkernaufnahme – ÖNORM EN ISO 14688</title>
 
-  <link rel="manifest" href="./manifest.json" />
-  <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+  <link rel="manifest" href="/Bohrkernaufnahme/manifest.json?v=40" />
+  <link rel="icon" type="image/svg+xml" href="/Bohrkernaufnahme/icon.svg?v=40" />
+  <link rel="stylesheet" href="/Bohrkernaufnahme/styles.css?v=40" />
+
+  <script defer src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script defer src="/Bohrkernaufnahme/app.js?v=40"></script>
 
   <style>
-    :root{
-      --bg:#0f0f10;
-      --card:#171718;
-      --card2:#202022;
-      --border:#2a2a2d;
-      --accent:#ffed00;
-      --text:#f2f2f2;
-      --muted:#8a8a92;
-      --ok:#00cc66;
-      --err:#ff4444;
-      --r:16px;
-      --shadow:0 10px 24px rgba(0,0,0,.22);
-    }
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%}
-    body{
-      background:var(--bg);
-      color:var(--text);
-      font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;
-      padding:0 14px 24px;
-      max-width:960px;
-      margin:0 auto;
-      -webkit-font-smoothing:antialiased;
-      text-rendering:optimizeLegibility;
-    }
-
-    .brand{margin:0 -14px 12px;overflow:hidden}
-    .brand__bar{
-      background:#000;
-      display:flex;
-      align-items:center;
-      gap:14px;
-      padding:10px 16px;
-    }
-    .brand__logo{
-      display:flex;
-      align-items:center;
-      flex-shrink:0;
-      line-height:0;
-    }
-    .brand__logo svg{
-      height:46px;
-      width:auto;
-      display:block;
-    }
-    .brand__info{flex:1;min-width:0}
-    .brand__company{
-      color:#fff;
-      font-weight:900;
-      font-size:1.05em;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .brand__subtitle{
-      color:rgba(255,255,255,.55);
-      font-size:.75em;
-      margin-top:3px;
-      line-height:1.35;
-    }
-
-    .tabs{
-      display:flex;
-      gap:4px;
-      background:var(--card2);
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:4px;
-      margin-bottom:12px;
-      box-shadow:var(--shadow);
-    }
-    .tab{
-      flex:1;
-      border:none;
-      background:transparent;
-      color:var(--text);
-      padding:10px 6px;
-      border-radius:10px;
-      font-weight:900;
-      cursor:pointer;
-      font-size:.88em;
-      transition:background .18s ease,color .18s ease,opacity .18s ease;
-    }
-    .tab:hover{opacity:.92}
-    .tab.is-active{background:var(--accent);color:#111}
-    .pane{display:none}
-    .pane.is-active{display:block}
-
-    .card{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:var(--r);
-      padding:14px;
-      margin-bottom:12px;
-      box-shadow:var(--shadow);
-    }
-    .card__title{
-      font-size:.72em;
-      color:var(--accent);
-      text-transform:uppercase;
-      letter-spacing:1px;
-      font-weight:950;
-      margin-bottom:12px;
-      display:flex;
-      align-items:center;
-      gap:8px;
-    }
-    .card__title::before{
-      content:"";
-      width:3px;
-      height:14px;
-      border-radius:2px;
-      background:var(--accent);
-      flex-shrink:0;
-    }
-
-    .card--collapsible{padding-bottom:10px}
-    .card--collapsible>summary{
-      list-style:none;
-      outline:none;
-    }
-    .card--collapsible>summary::-webkit-details-marker{display:none}
-    .card--collapsible>summary.card__title{
-      cursor:pointer;
-      margin-bottom:0;
-    }
-    .card--collapsible[open]>summary.card__title{margin-bottom:12px}
-    .card--collapsible>summary.card__title::after{
-      content:"▾";
-      margin-left:auto;
-      color:var(--muted);
-      font-weight:900;
-      transition:transform .2s ease;
-      font-size:1.4em;
-    }
-    .card--collapsible:not([open])>summary.card__title::after{
-      transform:rotate(-90deg);
-    }
-    .card__body{margin-top:4px}
-
-    .form-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-    }
-    @media(max-width:680px){
-      .form-grid{grid-template-columns:1fr}
-    }
-    .field{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-    }
-    .field--full{grid-column:1 / -1}
-    .field__label{
-      font-size:.75em;
-      color:var(--muted);
-      font-weight:900;
-      text-transform:uppercase;
-      letter-spacing:.5px;
-    }
-    .field__input,
-    .field__select,
-    .field__textarea{
-      background:var(--card2);
-      color:var(--text);
-      border:1px solid var(--border);
-      border-radius:10px;
-      padding:10px 12px;
-      font-size:.92em;
-      outline:none;
-      font-family:inherit;
-      transition:border-color .15s ease, box-shadow .15s ease;
-    }
-    .field__input:focus,
-    .field__select:focus,
-    .field__textarea:focus{
-      border-color:#5b5500;
-      box-shadow:0 0 0 3px rgba(255,237,0,.08);
-    }
-    .field__textarea{
-      min-height:88px;
-      resize:vertical;
-    }
-
-    .buttons{
+    /* Zusätzliche Styles nur für 4 Gruppen + Schnellmodus */
+    .modeBar{
       display:flex;
       gap:10px;
       justify-content:center;
       flex-wrap:wrap;
-    }
-    .btn{
-      border:none;
-      border-radius:999px;
-      padding:12px 22px;
-      font-weight:950;
-      cursor:pointer;
-      font-size:.95em;
-      font-family:inherit;
-      transition:transform .12s ease, opacity .15s ease, background .15s ease, border-color .15s ease;
-    }
-    .btn:hover{transform:translateY(-1px)}
-    .btn:active{transform:translateY(0)}
-    .btn--accent{background:var(--accent);color:#111}
-    .btn--ghost{
-      background:var(--card2);
-      border:1px solid var(--border);
-      color:var(--text);
-    }
-    .btn--ghost:hover{border-color:#4a4a4f}
-    .btn--install{
-      margin-top:10px;
-      padding:8px 20px;
-      font-size:.80em;
-      background:transparent;
-      border:1px solid var(--border);
-      color:var(--muted);
-      border-radius:999px;
-      cursor:pointer;
-      font-family:inherit;
-      font-weight:700;
-      transition:color .2s,border-color .2s;
-    }
-    .btn--install:hover{
-      color:var(--accent);
-      border-color:var(--accent);
+      margin-bottom:10px;
     }
 
-    .hint{
+    .quickInfo{
+      background:#1a1a0b;
+      border:1px solid #4a4300;
+      color:var(--accent);
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:.82em;
+      line-height:1.5;
       margin-top:10px;
-      color:var(--muted);
-      font-size:.78em;
       text-align:center;
+    }
+
+    .layerQuickNote{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      background:#171700;
+      border:1px solid #4a4300;
+      color:#e8db6a;
+      font-size:.80em;
       line-height:1.5;
     }
-    .text{
-      color:var(--muted);
-      font-size:.84em;
-      line-height:1.8;
-    }
-    .text p{margin:0 0 8px}
-    .text p:last-child{margin-bottom:0}
 
-    .layerList{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
+    .quickPill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      background:#2a2a12;
+      color:var(--accent);
+      border:1px solid #5b5500;
+      border-radius:999px;
+      padding:4px 10px;
+      font-size:.72em;
+      font-weight:900;
+      width:max-content;
+      margin-top:2px;
     }
-    .layerCard{
-      background:var(--card2);
+
+    .subAcc{
+      margin-top:12px;
       border:1px solid var(--border);
-      border-radius:14px;
+      border-radius:12px;
       overflow:hidden;
+      background:#17181a;
     }
-    .layerCard>summary{
+
+    .subAcc > summary{
       list-style:none;
       cursor:pointer;
-      padding:14px;
+      padding:12px;
       display:flex;
+      align-items:flex-start;
       justify-content:space-between;
-      align-items:center;
       gap:10px;
-      font-weight:900;
       user-select:none;
+      background:#151618;
     }
-    .layerCard>summary::-webkit-details-marker{display:none}
-    .layerCard>summary::after{
+
+    .subAcc > summary::-webkit-details-marker{display:none}
+
+    .subAcc > summary::after{
       content:"▾";
       color:var(--muted);
-      font-size:1.2em;
+      font-size:1.1em;
       transition:transform .2s ease;
+      margin-top:2px;
     }
-    .layerCard:not([open])>summary::after{transform:rotate(-90deg)}
-    .layerCard__title{
+
+    .subAcc:not([open]) > summary::after{
+      transform:rotate(-90deg);
+    }
+
+    .subAcc__head{
       display:flex;
       flex-direction:column;
       gap:4px;
       min-width:0;
+      flex:1;
     }
-    .layerCard__sub{
+
+    .subAcc__title{
+      font-size:.84em;
+      font-weight:950;
+      color:var(--text);
+    }
+
+    .subAcc__meta{
+      font-size:.78em;
       color:var(--muted);
-      font-size:.83em;
-      font-weight:700;
       line-height:1.4;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
     }
-    .layerBody{
-      padding:0 14px 14px;
+
+    .subAcc__body{
+      padding:12px;
       border-top:1px solid var(--border);
+      background:#1b1c1f;
     }
 
-    .choiceBlock{margin-top:12px}
-    .choiceLabel{
-      font-size:.75em;
-      color:var(--muted);
-      font-weight:900;
-      text-transform:uppercase;
-      letter-spacing:.5px;
-      margin-bottom:6px;
-    }
-    .chips{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-    }
-    .chip{
-      border:1px solid var(--border);
-      background:#111214;
-      color:var(--text);
-      padding:8px 12px;
-      border-radius:999px;
-      cursor:pointer;
-      font-size:.84em;
-      font-weight:800;
-      font-family:inherit;
-      transition:background .15s ease,color .15s ease,border-color .15s ease,transform .1s ease;
-    }
-    .chip:hover{
-      border-color:#4b4b50;
-      transform:translateY(-1px);
-    }
-    .chip.is-active{
-      background:var(--accent);
-      color:#111;
-      border-color:var(--accent);
-    }
-    .chip--soft.is-active{
-      background:#2a2a12;
-      color:var(--accent);
-      border-color:#5b5500;
-    }
-
-    .readonly{
-      background:#101012;
-      border:1px dashed #34343a;
-      border-radius:12px;
-      padding:10px 12px;
-      line-height:1.6;
-      min-height:48px;
-      color:var(--text);
-    }
-
-    .layerActions{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
+    .groupDivider{
       margin-top:12px;
-    }
-    .miniBtn{
-      border:1px solid var(--border);
-      background:#111214;
-      color:var(--text);
-      padding:8px 14px;
-      border-radius:999px;
-      cursor:pointer;
-      font-size:.82em;
-      font-weight:900;
-      transition:border-color .15s ease,color .15s ease;
-    }
-    .miniBtn:hover{
-      border-color:var(--accent);
-      color:var(--accent);
+      border-top:1px dashed #33363b;
+      padding-top:12px;
     }
 
-    .historyList{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-    .historyItem{
-      background:var(--card2);
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:12px;
-    }
-    .historyTop{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-      font-weight:900;
-    }
-    .historySub{
-      color:var(--muted);
-      font-size:.82em;
+    .smartHint{
       margin-top:6px;
-      line-height:1.5;
-    }
-    .historyBtns{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-top:10px;
-    }
-    .historyBtns button{
-      border:none;
-      border-radius:999px;
-      padding:8px 12px;
-      background:#111214;
-      color:var(--text);
-      cursor:pointer;
-      font-weight:900;
-      border:1px solid var(--border);
-      font-size:.82em;
-    }
-
-    .footer{
-      text-align:center;
       color:var(--muted);
-      font-size:.78em;
-      margin-top:16px;
-      padding:12px;
-      border-top:1px solid var(--border);
-    }
-    .footer b{color:var(--text)}
-
-    @media (max-width:480px){
-      body{padding:0 10px 20px}
-      .brand{margin:0 -10px 12px}
-      .brand__bar{padding:10px 12px}
-      .brand__company{font-size:.94em}
-      .brand__subtitle{font-size:.72em}
-      .tab{font-size:.8em;padding:9px 4px}
-      .btn{padding:11px 16px;font-size:.88em}
-      .card{padding:12px}
+      font-size:.76em;
+      line-height:1.5;
     }
   </style>
 </head>
@@ -447,12 +146,8 @@
 
   <header class="brand">
     <div class="brand__bar">
-      <div class="brand__logo" aria-label="HTB Logo">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 637.8 496.06" preserveAspectRatio="xMidYMid meet">
-          <rect width="637.8" height="496.06" fill="#ffed00"/>
-          <path fill="#111111" d="M531.5,177.12H148.73l43.08-28.73c6.57-4.38,14.29-6.72,22.18-6.72h285.8s-140.7-93.84-140.7-93.84c-.7-.48-1.44-.95-2.15-1.42-21.73-14.64-54.36-14.64-76.09,0-.72.48-1.44.94-2.15,1.42L66.6,189.29h0c-4.68,3.2-8.98,6.93-12.8,11.12-41.01,45.63-8.95,118.29,52.5,118.53h382.77l-43.08,28.73c-6.57,4.38-14.29,6.72-22.19,6.72H138.01s140.71,93.84,140.71,93.84c.7.49,1.44.95,2.15,1.43,21.73,14.64,54.36,14.64,76.09,0,.72-.48,1.44-.94,2.14-1.42l212.1-141.45h0c4.69-3.21,9.01-6.96,12.84-11.16,11.73-12.89,18.35-30.15,18.33-47.58,0-39.16-31.73-70.9-70.87-70.9Z"/>
-          <path fill="#ffed00" d="M438.32,263.5c.08-5.32-1.27-9.39-4.05-12.22-2.79-2.82-7.04-4.81-12.77-5.96,4.83-.9,8.43-2.8,10.81-5.71,2.37-2.91,3.56-6.61,3.56-11.11v-3.44c0-4.83-.94-8.72-2.82-11.67-1.88-2.95-4.75-5.08-8.6-6.39-3.85-1.31-8.72-1.96-14.61-1.96h-157.8v33.77h-30.21v-33.77h-22.59v85.96h22.59v-35.73h30.21v35.73h22.72v-69.26h33.52v69.26h22.84v-69.26h33.4v69.26h45.31c6.38,0,11.69-.78,15.9-2.33,4.21-1.55,7.41-3.99,9.58-7.31,2.17-3.32,3.25-7.55,3.25-12.71l-.25-5.16ZM386.87,220.77h18.42c2.78,0,4.81.57,6.08,1.72,1.27,1.15,1.9,3.11,1.9,5.89v3.19c0,1.96-.29,3.54-.86,4.73-.57,1.19-1.43,2.05-2.58,2.58-1.15.53-2.7.8-4.67.8h-18.3v-18.91ZM414.99,266.82c0,1.96-.31,3.58-.92,4.85-.61,1.27-1.56,2.17-2.82,2.7-1.27.53-2.93.8-4.97.8h-19.4v-21h19.4c2.13,0,3.83.25,5.1.74,1.27.49,2.19,1.35,2.76,2.58s.86,2.87.86,4.91v4.42Z"/>
-        </svg>
+      <div class="brand__logo">
+        <img src="/Bohrkernaufnahme/logo.svg?v=40" alt="HTB Logo" />
       </div>
       <div class="brand__info">
         <div class="brand__company">HTB Baugesellschaft m.b.H.</div>
@@ -511,15 +206,25 @@
     </details>
 
     <section class="card">
+      <div class="card__title">Modus</div>
+      <div class="modeBar">
+        <button id="btnQuickMode" class="btn btn--accent" type="button" aria-pressed="true">Schnellmodus: EIN</button>
+      </div>
+      <div id="quickModeHint" class="quickInfo">
+        Schnellmodus aktiv: sichtbar sind nur die wichtigsten Felder. Für Proben-Nr., Kernlauf, Kalk, Wasser etc. den Schnellmodus ausschalten.
+      </div>
+    </section>
+
+    <section class="card">
       <div class="card__title">Aktionen</div>
       <div class="buttons">
         <button id="btnAddLayer" class="btn btn--accent" type="button">+ Schicht</button>
         <button id="btnSave" class="btn btn--ghost" type="button">Speichern</button>
         <button id="btnCsv" class="btn btn--ghost" type="button">GeODin CSV</button>
         <button id="btnJson" class="btn btn--ghost" type="button">JSON</button>
-        <button id="btnReport" class="btn btn--ghost" type="button">PDF / Bericht</button>
+        <button id="btnPdf" class="btn btn--ghost" type="button">PDF</button>
       </div>
-      <div class="hint">Bericht öffnet in neuem Tab. Dort kann als PDF gespeichert werden.</div>
+      <div class="hint">PDF öffnet in neuem Tab. CSV ist für GeODin-Feldzuordnung vorbereitet.</div>
     </section>
 
     <section class="card">
@@ -540,17 +245,17 @@
     <section class="card">
       <div class="card__title">App-Hinweis</div>
       <div class="text">
-        <p><b>Benennung:</b> Hauptanteil + Nebenanteile + Zustandsbeschreibung.</p>
-        <p><b>Speicherung:</b> Draft und Verlauf bleiben lokal am Gerät.</p>
-        <p><b>Export:</b> GeODin-CSV, JSON und Bericht/PDF sind direkt verfügbar.</p>
+        <p><b>4 Gruppen pro Schicht:</b> Tiefe & Kerndaten · Bodenbenennung · Zustand & Zusatz · Beschreibung & Notiz</p>
+        <p><b>Schnellmodus:</b> zeigt nur die wichtigsten Baustellenfelder und blendet Zusatzangaben aus.</p>
+        <p><b>Export:</b> GeODin-CSV, JSON und PDF stehen direkt in der App zur Verfügung.</p>
       </div>
     </section>
 
     <section class="card">
       <div class="card__title">Als App installieren</div>
       <div class="text">
-        <p><b>Android:</b> Chrome-Menü → App installieren</p>
-        <p><b>iPhone:</b> Safari → Teilen → Zum Home-Bildschirm</p>
+        <p><b>Android:</b> Chrome-Menü → „App installieren“</p>
+        <p><b>iPhone:</b> Safari → Teilen → „Zum Home-Bildschirm“</p>
       </div>
     </section>
   </main>
@@ -561,889 +266,5 @@
     <button id="btnInstall" class="btn btn--install" type="button" hidden>⬇ App installieren</button>
   </footer>
 
-  <script>
-    'use strict';
-
-    const STORAGE_DRAFT = 'htb-bohrkern-draft-v50';
-    const STORAGE_HISTORY = 'htb-bohrkern-history-v50';
-    const HISTORY_MAX = 40;
-
-    const $ = (id) => document.getElementById(id);
-
-    const MAIN_OPTIONS = [
-      { value: 'BLÖCKE', family: 'block' },
-      { value: 'STEINE', family: 'stone' },
-      { value: 'KIES', family: 'gravel' },
-      { value: 'SAND', family: 'sand' },
-      { value: 'SCHLUFF', family: 'silt' },
-      { value: 'TON', family: 'clay' },
-      { value: 'TORF', family: 'peat' },
-      { value: 'HUMUS', family: 'humus' },
-      { value: 'ANSCHÜTTUNG', family: 'fill' }
-    ];
-
-    const SECONDARY_OPTIONS = [
-      'schwach blockig', 'blockig', 'stark blockig',
-      'schwach steinig', 'steinig', 'stark steinig',
-      'schwach kiesig', 'kiesig', 'stark kiesig',
-      'schwach sandig', 'sandig', 'stark sandig',
-      'schwach schluffig', 'schluffig', 'stark schluffig',
-      'schwach tonig', 'tonig', 'stark tonig',
-      'schwach humos', 'humos', 'stark humos',
-      'schwach torfig', 'torfig', 'stark torfig',
-      'schwach organisch', 'organisch', 'stark organisch'
-    ];
-
-    const GRAIN_OPTIONS = [
-      { value: 'Feinkies', family: 'gravel' },
-      { value: 'Mittelkies', family: 'gravel' },
-      { value: 'Grobkies', family: 'gravel' },
-      { value: 'Feinsand', family: 'sand' },
-      { value: 'Mittelsand', family: 'sand' },
-      { value: 'Grobsand', family: 'sand' },
-      { value: 'Feinschluff', family: 'silt' },
-      { value: 'Mittelschluff', family: 'silt' },
-      { value: 'Grobschluff', family: 'silt' }
-    ];
-
-    const COARSE_STATE_OPTIONS = ['sehr locker', 'locker', 'mitteldicht', 'dicht', 'sehr dicht'];
-    const FINE_STATE_OPTIONS = ['flüssig', 'breiig', 'sehr weich', 'weich', 'steif', 'halbfest', 'fest (hart)'];
-    const COLOR_OPTIONS = ['gelb', 'gelblich', 'braun', 'bräunlich', 'grau', 'gräulich', 'schwarz', 'rot', 'rötlich', 'grünlich', 'bläulich', 'weiß'];
-    const CALC_OPTIONS = ['', 'nicht kalkhaltig', 'leicht kalkhaltig', 'kalkhaltig', 'sehr kalkhaltig'];
-    const ORGANIC_OPTIONS = ['', 'leicht organisch', 'organisch', 'stark organisch'];
-    const WATER_OPTIONS = ['', 'trocken', 'erdfeucht', 'feucht', 'nass', 'wasserführend'];
-    const TOOL_OPTIONS = ['', 'RKS', 'Kernbohrung', 'Spülbohrung', 'Bohrstock', 'Bagger', 'Schurf', 'DPH', 'DPSH', 'CPT'];
-
-    const state = {
-      meta: {
-        date: '',
-        user: '',
-        project: '',
-        borehole: '',
-        location: '',
-        device: '',
-        note: ''
-      },
-      layers: []
-    };
-
-    function uid() {
-      return (crypto && crypto.randomUUID)
-        ? crypto.randomUUID()
-        : 'id_' + Date.now() + '_' + Math.random().toString(16).slice(2);
-    }
-
-    function clone(v) {
-      return JSON.parse(JSON.stringify(v));
-    }
-
-    function esc(v) {
-      return String(v ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-
-    function fmtDepth(v) {
-      const n = Number(v);
-      return Number.isFinite(n) ? n.toFixed(2) : '';
-    }
-
-    function escCsv(v) {
-      const s = String(v ?? '');
-      if (/[;"\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
-      return s;
-    }
-
-    function getFamilyByMain(main) {
-      return MAIN_OPTIONS.find(x => x.value === main)?.family || '';
-    }
-
-    function decorateMain(main, grain) {
-      if (!main) return '';
-      const famMain = getFamilyByMain(main);
-      const famGrain = GRAIN_OPTIONS.find(x => x.value === grain)?.family || '';
-      if (grain && famMain && famMain === famGrain) return grain.toUpperCase();
-      return main;
-    }
-
-    function shortDescription(layer) {
-      const adj = Array.isArray(layer.secondary) ? layer.secondary : [];
-      const main1 = decorateMain(layer.main1, layer.grain);
-      const main2 = decorateMain(layer.main2, layer.grain);
-      const base = main2 ? (main1 + '/' + main2) : main1;
-      if (!base) return '';
-      return adj.length ? (adj.join(', ') + ' ' + base) : base;
-    }
-
-    function fullDescription(layer) {
-      const parts = [];
-      const s = shortDescription(layer);
-      if (s) parts.push(s);
-      if (layer.state) parts.push(layer.state);
-      if (layer.colors?.length) parts.push(layer.colors.join(', '));
-      if (layer.organic) parts.push(layer.organic);
-      if (layer.calc && layer.calc !== 'nicht kalkhaltig') parts.push(layer.calc);
-      if (layer.water) parts.push(layer.water);
-      return parts.join(' · ');
-    }
-
-    function defaultLayer(index = 0) {
-      return {
-        id: uid(),
-        from: fmtDepth(index),
-        to: fmtDepth(index + 1),
-        main1: '',
-        main2: '',
-        secondary: [],
-        grain: '',
-        state: '',
-        colors: [],
-        organic: '',
-        calc: '',
-        water: '',
-        tool: '',
-        sampleNo: '',
-        coreRun: '',
-        recovery: '',
-        note: ''
-      };
-    }
-
-    function hydrateLayer(layer, idx) {
-      const base = defaultLayer(idx);
-      return {
-        ...base,
-        ...layer,
-        secondary: Array.isArray(layer?.secondary) ? layer.secondary : [],
-        colors: Array.isArray(layer?.colors) ? layer.colors : []
-      };
-    }
-
-    function getLayer(id) {
-      return state.layers.find(x => x.id === id);
-    }
-
-    function getOpenIds() {
-      return Array.from(document.querySelectorAll('.layerCard[open]')).map(x => x.dataset.id);
-    }
-
-    function saveDraft() {
-      try { localStorage.setItem(STORAGE_DRAFT, JSON.stringify(state)); } catch {}
-    }
-
-    let saveTimer = null;
-    function saveDraftDebounced() {
-      clearTimeout(saveTimer);
-      saveTimer = setTimeout(saveDraft, 250);
-    }
-
-    function loadDraft() {
-      try {
-        const raw = localStorage.getItem(STORAGE_DRAFT);
-        if (!raw) return;
-        const parsed = JSON.parse(raw);
-        if (parsed?.meta) state.meta = { ...state.meta, ...parsed.meta };
-        if (Array.isArray(parsed?.layers) && parsed.layers.length) {
-          state.layers = parsed.layers.map((l, i) => hydrateLayer(l, i));
-        }
-      } catch {}
-    }
-
-    function readHistory() {
-      try { return JSON.parse(localStorage.getItem(STORAGE_HISTORY) || '[]'); }
-      catch { return []; }
-    }
-
-    function writeHistory(list) {
-      try { localStorage.setItem(STORAGE_HISTORY, JSON.stringify(list.slice(0, HISTORY_MAX))); }
-      catch {}
-    }
-
-    function saveCurrentToHistory() {
-      const entry = {
-        id: uid(),
-        savedAt: Date.now(),
-        title: `${state.meta.project || '—'} · ${state.meta.borehole || '—'}`,
-        snapshot: clone(state)
-      };
-      const list = readHistory();
-      list.unshift(entry);
-      writeHistory(list);
-      renderHistoryList();
-    }
-
-    function syncMetaToUi() {
-      $('meta-date').value = state.meta.date || '';
-      $('meta-user').value = state.meta.user || '';
-      $('meta-project').value = state.meta.project || '';
-      $('meta-borehole').value = state.meta.borehole || '';
-      $('meta-location').value = state.meta.location || '';
-      $('meta-device').value = state.meta.device || '';
-      $('meta-note').value = state.meta.note || '';
-    }
-
-    function collectMetaFromUi() {
-      state.meta.date = $('meta-date').value || '';
-      state.meta.user = $('meta-user').value || '';
-      state.meta.project = $('meta-project').value || '';
-      state.meta.borehole = $('meta-borehole').value || '';
-      state.meta.location = $('meta-location').value || '';
-      state.meta.device = $('meta-device').value || '';
-      state.meta.note = $('meta-note').value || '';
-    }
-
-    function chipHtml({ layerId, field, value, active, soft = false }) {
-      return `
-        <button
-          class="chip ${active ? 'is-active' : ''} ${soft ? 'chip--soft' : ''}"
-          type="button"
-          data-chip-field="${esc(field)}"
-          data-id="${esc(layerId)}"
-          data-value="${esc(value)}"
-        >${esc(value || '—')}</button>
-      `;
-    }
-
-    function selectHtml({ layerId, field, options, value, label }) {
-      return `
-        <label class="field">
-          <span class="field__label">${esc(label)}</span>
-          <select class="field__select" data-field="${esc(field)}" data-id="${esc(layerId)}">
-            ${options.map(opt => `<option value="${esc(opt)}" ${opt === value ? 'selected' : ''}>${esc(opt || '—')}</option>`).join('')}
-          </select>
-        </label>
-      `;
-    }
-
-    function layerCardHtml(layer, idx, isOpen = false) {
-      const descShort = shortDescription(layer) || 'Beschreibung wählen';
-      const descFull = fullDescription(layer) || 'Noch keine normnahe Beschreibung ausgewählt.';
-      const summaryRange = `${fmtDepth(layer.from) || '—'} – ${fmtDepth(layer.to) || '—'} m`;
-
-      return `
-        <details class="layerCard" data-id="${esc(layer.id)}" ${isOpen ? 'open' : ''}>
-          <summary>
-            <div class="layerCard__title">
-              <span>Schicht ${idx + 1}</span>
-              <span class="layerCard__sub js-summary-range">${esc(summaryRange)}</span>
-              <span class="layerCard__sub js-summary-desc">${esc(descShort)}</span>
-            </div>
-          </summary>
-
-          <div class="layerBody">
-            <div class="form-grid">
-              <label class="field">
-                <span class="field__label">Von [m]</span>
-                <input class="field__input" type="number" step="0.01" data-field="from" data-id="${esc(layer.id)}" value="${esc(layer.from || '')}" />
-              </label>
-
-              <label class="field">
-                <span class="field__label">Bis [m]</span>
-                <input class="field__input" type="number" step="0.01" data-field="to" data-id="${esc(layer.id)}" value="${esc(layer.to || '')}" />
-              </label>
-
-              <label class="field">
-                <span class="field__label">Proben-Nr.</span>
-                <input class="field__input" type="text" data-field="sampleNo" data-id="${esc(layer.id)}" value="${esc(layer.sampleNo || '')}" />
-              </label>
-
-              <label class="field">
-                <span class="field__label">Kernlauf</span>
-                <input class="field__input" type="text" data-field="coreRun" data-id="${esc(layer.id)}" value="${esc(layer.coreRun || '')}" />
-              </label>
-
-              <label class="field">
-                <span class="field__label">Kerngewinnung [%]</span>
-                <input class="field__input" type="number" step="1" min="0" max="100" data-field="recovery" data-id="${esc(layer.id)}" value="${esc(layer.recovery || '')}" />
-              </label>
-
-              ${selectHtml({
-                layerId: layer.id,
-                field: 'tool',
-                options: TOOL_OPTIONS,
-                value: layer.tool || '',
-                label: 'Werkzeug / Verfahren'
-              })}
-            </div>
-
-            <div class="choiceBlock">
-              <div class="choiceLabel">Hauptanteil</div>
-              <div class="chips">
-                ${MAIN_OPTIONS.map(x => chipHtml({
-                  layerId: layer.id,
-                  field: 'main1',
-                  value: x.value,
-                  active: layer.main1 === x.value
-                })).join('')}
-              </div>
-            </div>
-
-            <div class="choiceBlock">
-              <div class="choiceLabel">2. Hauptanteil optional</div>
-              <div class="chips">
-                ${MAIN_OPTIONS.map(x => chipHtml({
-                  layerId: layer.id,
-                  field: 'main2',
-                  value: x.value,
-                  active: layer.main2 === x.value,
-                  soft: true
-                })).join('')}
-              </div>
-            </div>
-
-            <div class="choiceBlock">
-              <div class="choiceLabel">Nebenanteile</div>
-              <div class="chips">
-                ${SECONDARY_OPTIONS.map(v => chipHtml({
-                  layerId: layer.id,
-                  field: 'secondary',
-                  value: v,
-                  active: (layer.secondary || []).includes(v),
-                  soft: true
-                })).join('')}
-              </div>
-            </div>
-
-            <div class="choiceBlock">
-              <div class="choiceLabel">Kornklasse optional</div>
-              <div class="chips">
-                ${GRAIN_OPTIONS.map(v => chipHtml({
-                  layerId: layer.id,
-                  field: 'grain',
-                  value: v.value,
-                  active: layer.grain === v.value
-                })).join('')}
-              </div>
-            </div>
-
-            <div class="choiceBlock">
-              <div class="choiceLabel">Lagerungsdichte / Konsistenz</div>
-              <div class="chips">
-                ${COARSE_STATE_OPTIONS.map(v => chipHtml({
-                  layerId: layer.id,
-                  field: 'state',
-                  value: v,
-                  active: layer.state === v
-                })).join('')}
-                ${FINE_STATE_OPTIONS.map(v => chipHtml({
-                  layerId: layer.id,
-                  field: 'state',
-                  value: v,
-                  active: layer.state === v,
-                  soft: true
-                })).join('')}
-              </div>
-            </div>
-
-            <div class="choiceBlock">
-              <div class="choiceLabel">Farbe</div>
-              <div class="chips">
-                ${COLOR_OPTIONS.map(v => chipHtml({
-                  layerId: layer.id,
-                  field: 'colors',
-                  value: v,
-                  active: (layer.colors || []).includes(v),
-                  soft: true
-                })).join('')}
-              </div>
-            </div>
-
-            <div class="choiceBlock">
-              <div class="choiceLabel">Organischer Anteil</div>
-              <div class="chips">
-                ${ORGANIC_OPTIONS.filter(Boolean).map(v => chipHtml({
-                  layerId: layer.id,
-                  field: 'organic',
-                  value: v,
-                  active: layer.organic === v
-                })).join('')}
-              </div>
-            </div>
-
-            <div class="choiceBlock">
-              <div class="choiceLabel">Kalkgehalt</div>
-              <div class="chips">
-                ${CALC_OPTIONS.filter(Boolean).map(v => chipHtml({
-                  layerId: layer.id,
-                  field: 'calc',
-                  value: v,
-                  active: layer.calc === v
-                })).join('')}
-              </div>
-            </div>
-
-            <div class="choiceBlock">
-              <div class="choiceLabel">Wasserzustand</div>
-              <div class="chips">
-                ${WATER_OPTIONS.filter(Boolean).map(v => chipHtml({
-                  layerId: layer.id,
-                  field: 'water',
-                  value: v,
-                  active: layer.water === v
-                })).join('')}
-              </div>
-            </div>
-
-            <div class="choiceBlock">
-              <div class="choiceLabel">Kurzbeschreibung nach Norm</div>
-              <div class="readonly js-short-desc">${esc(descShort)}</div>
-            </div>
-
-            <div class="choiceBlock">
-              <div class="choiceLabel">Detailbeschreibung</div>
-              <div class="readonly js-full-desc">${esc(descFull)}</div>
-            </div>
-
-            <div class="choiceBlock">
-              <label class="field">
-                <span class="field__label">Bemerkung</span>
-                <textarea class="field__textarea" data-field="note" data-id="${esc(layer.id)}">${esc(layer.note || '')}</textarea>
-              </label>
-            </div>
-
-            <div class="layerActions">
-              <button class="miniBtn" type="button" data-act="dup" data-id="${esc(layer.id)}">Duplizieren</button>
-              <button class="miniBtn" type="button" data-act="del" data-id="${esc(layer.id)}">Löschen</button>
-            </div>
-          </div>
-        </details>
-      `;
-    }
-
-    function renderLayers(openIds = null) {
-      const host = $('layerList');
-      const opened = Array.isArray(openIds) ? [...openIds] : getOpenIds();
-      if (!opened.length && state.layers.length) opened.push(state.layers[state.layers.length - 1].id);
-      host.innerHTML = state.layers.map((layer, idx) => layerCardHtml(layer, idx, opened.includes(layer.id))).join('');
-    }
-
-    function refreshLayerComputed(id) {
-      const layer = getLayer(id);
-      if (!layer) return;
-      const card = document.querySelector(`.layerCard[data-id="${id}"]`);
-      if (!card) return;
-
-      const range = `${fmtDepth(layer.from) || '—'} – ${fmtDepth(layer.to) || '—'} m`;
-      const s = shortDescription(layer) || 'Beschreibung wählen';
-      const f = fullDescription(layer) || 'Noch keine normnahe Beschreibung ausgewählt.';
-
-      const rangeEl = card.querySelector('.js-summary-range');
-      const sumEl = card.querySelector('.js-summary-desc');
-      const shortEl = card.querySelector('.js-short-desc');
-      const fullEl = card.querySelector('.js-full-desc');
-
-      if (rangeEl) rangeEl.textContent = range;
-      if (sumEl) sumEl.textContent = s;
-      if (shortEl) shortEl.textContent = s;
-      if (fullEl) fullEl.textContent = f;
-    }
-
-    function renderHistoryList() {
-      const host = $('historyList');
-      const list = readHistory();
-
-      if (!list.length) {
-        host.innerHTML = `<div class="text"><p>Noch keine Dokumentationen gespeichert.</p></div>`;
-        return;
-      }
-
-      host.innerHTML = list.map(entry => {
-        const snap = entry.snapshot || {};
-        return `
-          <div class="historyItem">
-            <div class="historyTop">
-              <span>${esc(entry.title)}</span>
-              <span style="color:var(--muted);font-size:.82em">${esc(new Date(entry.savedAt).toLocaleString('de-DE'))}</span>
-            </div>
-            <div class="historySub">
-              Projekt: <b>${esc(snap.meta?.project || '—')}</b> ·
-              Aufschluss: <b>${esc(snap.meta?.borehole || '—')}</b> ·
-              Schichten: <b>${esc((snap.layers || []).length)}</b>
-            </div>
-            <div class="historyBtns">
-              <button type="button" data-hact="load" data-id="${esc(entry.id)}">Laden</button>
-              <button type="button" data-hact="csv" data-id="${esc(entry.id)}">CSV</button>
-              <button type="button" data-hact="report" data-id="${esc(entry.id)}">Bericht</button>
-              <button type="button" data-hact="del" data-id="${esc(entry.id)}">Löschen</button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function buildCsv(snapshot = state) {
-      const rows = [];
-      rows.push([
-        'PROJEKT','AUFSCHLUSS','DATUM','BEARBEITER','ORT','GERAET',
-        'SCHICHT_NR','VON_M','BIS_M','MAECHTIGKEIT_M',
-        'HAUPTANTEIL','HAUPTANTEIL_2','NEBENANTEILE','KORNGRUPPE',
-        'BESCHREIBUNG_NORM','ZUSTAND','FARBE','ORGANIK','KALK','WASSER',
-        'WERKZEUG','PROBEN_NR','KERNLAUF','KERNGEWINNUNG_PROZENT','BEMERKUNG'
-      ].join(';'));
-
-      (snapshot.layers || []).forEach((layer, i) => {
-        const from = Number(layer.from || 0);
-        const to = Number(layer.to || 0);
-        const thickness = Number.isFinite(from) && Number.isFinite(to) ? (to - from).toFixed(2) : '';
-
-        rows.push([
-          escCsv(snapshot.meta?.project || ''),
-          escCsv(snapshot.meta?.borehole || ''),
-          escCsv(snapshot.meta?.date || ''),
-          escCsv(snapshot.meta?.user || ''),
-          escCsv(snapshot.meta?.location || ''),
-          escCsv(snapshot.meta?.device || ''),
-          escCsv(i + 1),
-          escCsv(layer.from || ''),
-          escCsv(layer.to || ''),
-          escCsv(thickness),
-          escCsv(layer.main1 || ''),
-          escCsv(layer.main2 || ''),
-          escCsv((layer.secondary || []).join(', ')),
-          escCsv(layer.grain || ''),
-          escCsv(fullDescription(layer)),
-          escCsv(layer.state || ''),
-          escCsv((layer.colors || []).join(', ')),
-          escCsv(layer.organic || ''),
-          escCsv(layer.calc || ''),
-          escCsv(layer.water || ''),
-          escCsv(layer.tool || ''),
-          escCsv(layer.sampleNo || ''),
-          escCsv(layer.coreRun || ''),
-          escCsv(layer.recovery || ''),
-          escCsv(layer.note || '')
-        ].join(';'));
-      });
-
-      return rows.join('\r\n');
-    }
-
-    function downloadText(filename, text, mime) {
-      const blob = new Blob(['\uFEFF' + text], { type: mime });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 30000);
-    }
-
-    function exportCsv(snapshot = state) {
-      const name = `${(snapshot.meta?.date || 'datum').replaceAll('-', '')}_HTB_GeODin_Bohrkern.csv`;
-      downloadText(name, buildCsv(snapshot), 'text/csv;charset=utf-8');
-    }
-
-    function exportJson(snapshot = state) {
-      const name = `${(snapshot.meta?.date || 'datum').replaceAll('-', '')}_HTB_Bohrkern.json`;
-      downloadText(name, JSON.stringify(snapshot, null, 2), 'application/json;charset=utf-8');
-    }
-
-    function buildReportHtml(snapshot = state) {
-      const rows = (snapshot.layers || []).map((layer, idx) => `
-        <tr>
-          <td>${idx + 1}</td>
-          <td>${esc(fmtDepth(layer.from))}</td>
-          <td>${esc(fmtDepth(layer.to))}</td>
-          <td>${esc(fullDescription(layer) || '—')}</td>
-          <td>${esc(layer.tool || '—')}</td>
-          <td>${esc(layer.sampleNo || '—')}</td>
-          <td>${esc(layer.coreRun || '—')}</td>
-          <td>${esc(layer.recovery || '—')}</td>
-          <td>${esc(layer.note || '—')}</td>
-        </tr>
-      `).join('');
-
-      return `<!doctype html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
-<title>HTB Bohrkernaufnahme Bericht</title>
-<style>
-  body{font-family:Arial,sans-serif;margin:24px;color:#111}
-  .head{display:flex;align-items:center;gap:16px;border-bottom:2px solid #111;padding-bottom:12px;margin-bottom:18px}
-  .logo{width:120px}
-  .title{font-size:22px;font-weight:700}
-  .sub{color:#444;font-size:13px;margin-top:4px}
-  .meta{margin:0 0 18px 0;font-size:13px;line-height:1.7}
-  table{width:100%;border-collapse:collapse;font-size:12px}
-  th,td{border:1px solid #bbb;padding:8px;vertical-align:top;text-align:left}
-  th{background:#f3f3f3}
-  .bar{margin:0 0 14px}
-  .pdfbtn{
-    display:inline-block;background:#111;color:#fff;border:none;border-radius:999px;
-    padding:10px 16px;cursor:pointer;font-weight:700
-  }
-  @media print {.bar{display:none} body{margin:10mm}}
-</style>
-</head>
-<body>
-  <div class="bar">
-    <button class="pdfbtn" onclick="window.print()">Als PDF speichern / drucken</button>
-  </div>
-
-  <div class="head">
-    <div class="logo">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 637.8 496.06">
-        <rect width="637.8" height="496.06" fill="#ffed00"/>
-        <path fill="#111111" d="M531.5,177.12H148.73l43.08-28.73c6.57-4.38,14.29-6.72,22.18-6.72h285.8s-140.7-93.84-140.7-93.84c-.7-.48-1.44-.95-2.15-1.42-21.73-14.64-54.36-14.64-76.09,0-.72.48-1.44.94-2.15,1.42L66.6,189.29h0c-4.68,3.2-8.98,6.93-12.8,11.12-41.01,45.63-8.95,118.29,52.5,118.53h382.77l-43.08,28.73c-6.57,4.38-14.29,6.72-22.19,6.72H138.01s140.71,93.84,140.71,93.84c.7.49,1.44.95,2.15,1.43,21.73,14.64,54.36,14.64,76.09,0,.72-.48,1.44-.94,2.14-1.42l212.1-141.45h0c4.69-3.21,9.01-6.96,12.84-11.16,11.73-12.89,18.35-30.15,18.33-47.58,0-39.16-31.73-70.9-70.87-70.9Z"/>
-        <path fill="#ffed00" d="M438.32,263.5c.08-5.32-1.27-9.39-4.05-12.22-2.79-2.82-7.04-4.81-12.77-5.96,4.83-.9,8.43-2.8,10.81-5.71,2.37-2.91,3.56-6.61,3.56-11.11v-3.44c0-4.83-.94-8.72-2.82-11.67-1.88-2.95-4.75-5.08-8.6-6.39-3.85-1.31-8.72-1.96-14.61-1.96h-157.8v33.77h-30.21v-33.77h-22.59v85.96h22.59v-35.73h30.21v35.73h22.72v-69.26h33.52v69.26h22.84v-69.26h33.4v69.26h45.31c6.38,0,11.69-.78,15.9-2.33,4.21-1.55,7.41-3.99,9.58-7.31,2.17-3.32,3.25-7.55,3.25-12.71l-.25-5.16ZM386.87,220.77h18.42c2.78,0,4.81.57,6.08,1.72,1.27,1.15,1.9,3.11,1.9,5.89v3.19c0,1.96-.29,3.54-.86,4.73-.57,1.19-1.43,2.05-2.58,2.58-1.15.53-2.7.8-4.67.8h-18.3v-18.91ZM414.99,266.82c0,1.96-.31,3.58-.92,4.85-.61,1.27-1.56,2.17-2.82,2.7-1.27.53-2.93.8-4.97.8h-19.4v-21h19.4c2.13,0,3.83.25,5.1.74,1.27.49,2.19,1.35,2.76,2.58s.86,2.87.86,4.91v4.42Z"/>
-      </svg>
-    </div>
-    <div>
-      <div class="title">HTB Bohrkernaufnahme</div>
-      <div class="sub">ÖNORM EN ISO 14688 · Bericht / Kerndokumentation</div>
-    </div>
-  </div>
-
-  <div class="meta">
-    <b>Projekt:</b> ${esc(snapshot.meta?.project || '—')}<br>
-    <b>Aufschluss / Bohrung:</b> ${esc(snapshot.meta?.borehole || '—')}<br>
-    <b>Datum:</b> ${esc(snapshot.meta?.date || '—')}<br>
-    <b>Bearbeiter:</b> ${esc(snapshot.meta?.user || '—')}<br>
-    <b>Ort / Abschnitt:</b> ${esc(snapshot.meta?.location || '—')}<br>
-    <b>Bohrgerät / Verfahren:</b> ${esc(snapshot.meta?.device || '—')}<br>
-    <b>Gesamtbemerkung:</b> ${esc(snapshot.meta?.note || '—')}
-  </div>
-
-  <table>
-    <thead>
-      <tr>
-        <th>Schicht</th>
-        <th>Von [m]</th>
-        <th>Bis [m]</th>
-        <th>Beschreibung nach Norm</th>
-        <th>Werkzeug</th>
-        <th>Probe</th>
-        <th>Kernlauf</th>
-        <th>Kerngew. [%]</th>
-        <th>Bemerkung</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${rows || '<tr><td colspan="9">Keine Schichten vorhanden.</td></tr>'}
-    </tbody>
-  </table>
-</body>
-</html>`;
-    }
-
-    function exportReport(snapshot = state) {
-      const html = buildReportHtml(snapshot);
-      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const win = window.open(url, '_blank');
-      if (!win) alert('Popup blockiert – bitte Popups erlauben.');
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-    }
-
-    function initTabs() {
-      document.querySelectorAll('.tab').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.tab').forEach(b => b.classList.toggle('is-active', b === btn));
-          document.querySelectorAll('.pane').forEach(p => {
-            const on = p.id === `tab-${btn.dataset.tab}`;
-            p.classList.toggle('is-active', on);
-            p.hidden = !on;
-          });
-          if (btn.dataset.tab === 'verlauf') renderHistoryList();
-        });
-      });
-    }
-
-    function hookMetaEvents() {
-      ['meta-date','meta-user','meta-project','meta-borehole','meta-location','meta-device','meta-note'].forEach(id => {
-        $(id).addEventListener('input', () => {
-          collectMetaFromUi();
-          saveDraftDebounced();
-        });
-      });
-    }
-
-    function hookLayerEvents() {
-      const host = $('layerList');
-
-      host.addEventListener('click', (e) => {
-        const chip = e.target.closest('[data-chip-field]');
-        if (chip) {
-          const layer = getLayer(chip.dataset.id);
-          if (!layer) return;
-          const field = chip.dataset.chipField;
-          const value = chip.dataset.value;
-
-          if (field === 'secondary' || field === 'colors') {
-            const arr = Array.isArray(layer[field]) ? [...layer[field]] : [];
-            const idx = arr.indexOf(value);
-            if (idx >= 0) arr.splice(idx, 1);
-            else arr.push(value);
-            layer[field] = arr;
-          } else {
-            layer[field] = layer[field] === value ? '' : value;
-          }
-
-          const openIds = getOpenIds();
-          if (!openIds.includes(layer.id)) openIds.push(layer.id);
-          renderLayers(openIds);
-          saveDraftDebounced();
-          return;
-        }
-
-        const act = e.target.closest('[data-act]');
-        if (!act) return;
-        const id = act.dataset.id;
-        const idx = state.layers.findIndex(x => x.id === id);
-        if (idx < 0) return;
-
-        if (act.dataset.act === 'del') {
-          if (!confirm('Schicht wirklich löschen?')) return;
-          if (state.layers.length === 1) state.layers = [defaultLayer(0)];
-          else state.layers.splice(idx, 1);
-          renderLayers();
-          saveDraftDebounced();
-          return;
-        }
-
-        if (act.dataset.act === 'dup') {
-          const copy = hydrateLayer(clone(state.layers[idx]), state.layers.length);
-          copy.id = uid();
-          state.layers.splice(idx + 1, 0, copy);
-          renderLayers([copy.id]);
-          saveDraftDebounced();
-        }
-      });
-
-      host.addEventListener('input', (e) => {
-        const inp = e.target.closest('[data-field]');
-        if (!inp) return;
-        const layer = getLayer(inp.dataset.id);
-        if (!layer) return;
-        layer[inp.dataset.field] = inp.value;
-        refreshLayerComputed(inp.dataset.id);
-        saveDraftDebounced();
-      });
-
-      host.addEventListener('change', (e) => {
-        const inp = e.target.closest('[data-field]');
-        if (!inp) return;
-        const layer = getLayer(inp.dataset.id);
-        if (!layer) return;
-        layer[inp.dataset.field] = inp.value;
-        refreshLayerComputed(inp.dataset.id);
-        saveDraftDebounced();
-      });
-    }
-
-    function hookHistoryEvents() {
-      $('historyList').addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-hact]');
-        if (!btn) return;
-
-        const list = readHistory();
-        const entry = list.find(x => x.id === btn.dataset.id);
-
-        if (btn.dataset.hact === 'del') {
-          writeHistory(list.filter(x => x.id !== btn.dataset.id));
-          renderHistoryList();
-          return;
-        }
-        if (!entry) return;
-
-        if (btn.dataset.hact === 'load') {
-          state.meta = { ...state.meta, ...(entry.snapshot.meta || {}) };
-          state.layers = (entry.snapshot.layers || []).length
-            ? entry.snapshot.layers.map((l, i) => hydrateLayer(l, i))
-            : [defaultLayer(0)];
-          syncMetaToUi();
-          renderLayers();
-          document.querySelector('.tab[data-tab="doku"]').click();
-          saveDraftDebounced();
-        }
-
-        if (btn.dataset.hact === 'csv') exportCsv(entry.snapshot);
-        if (btn.dataset.hact === 'report') exportReport(entry.snapshot);
-      });
-    }
-
-    function initInstallButton() {
-      let promptEvt = null;
-      const btn = $('btnInstall');
-
-      window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        promptEvt = e;
-        btn.hidden = false;
-      });
-
-      btn.addEventListener('click', async () => {
-        if (!promptEvt) return;
-        promptEvt.prompt();
-        await promptEvt.userChoice;
-        promptEvt = null;
-        btn.hidden = true;
-      });
-
-      window.addEventListener('appinstalled', () => {
-        promptEvt = null;
-        btn.hidden = true;
-      });
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      state.meta.date = new Date().toISOString().slice(0,10);
-      state.layers = [defaultLayer(0)];
-
-      loadDraft();
-
-      if (!state.meta.date) state.meta.date = new Date().toISOString().slice(0,10);
-      if (!state.layers.length) state.layers = [defaultLayer(0)];
-
-      initTabs();
-      syncMetaToUi();
-      renderLayers();
-      renderHistoryList();
-      hookMetaEvents();
-      hookLayerEvents();
-      hookHistoryEvents();
-      initInstallButton();
-
-      $('btnAddLayer').addEventListener('click', () => {
-        const lastTo = state.layers.length ? state.layers[state.layers.length - 1].to : 0;
-        const next = defaultLayer(Number(lastTo || 0));
-        next.from = fmtDepth(lastTo || 0);
-        next.to = fmtDepth(Number(lastTo || 0) + 1);
-        state.layers.push(next);
-        renderLayers([next.id]);
-        saveDraftDebounced();
-      });
-
-      $('btnSave').addEventListener('click', () => {
-        collectMetaFromUi();
-        saveCurrentToHistory();
-        saveDraftDebounced();
-        alert('Dokumentation im Verlauf gespeichert.');
-      });
-
-      $('btnCsv').addEventListener('click', () => {
-        collectMetaFromUi();
-        exportCsv(state);
-      });
-
-      $('btnJson').addEventListener('click', () => {
-        collectMetaFromUi();
-        exportJson(state);
-      });
-
-      $('btnReport').addEventListener('click', () => {
-        collectMetaFromUi();
-        exportReport(state);
-      });
-
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
-      }
-    });
-  </script>
 </body>
 </html>

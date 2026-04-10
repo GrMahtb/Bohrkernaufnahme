@@ -1,102 +1,137 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#111111" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="HTB Bodendoku" />
+  <title>HTB Bodendokumentation – ÖNORM EN ISO 14688</title>
 
-  <title>Bohrkernansprache ISO 14688</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="icon" type="image/png" sizes="192x192" href="launchericon-192x192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="launchericon-192x192.png" />
 
-  <!-- Wichtig: ./ Pfade + Cache-Bust -->
-  <link rel="stylesheet" href="./css/style.css?v=20260327" />
-  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
-
-  <!-- optional -->
-  <link rel="manifest" href="./manifest.webmanifest" />
-
-  <!-- defer: JS erst nach DOM -->
-  <script src="./js/app.js?v=20260327" defer></script>
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script defer src="app.js"></script>
 </head>
-
 <body>
-  <header>
-    <div class="logo-container">
-      <img src="./assets/icon.svg" alt="Firmenlogo" width="44" height="44" />
+
+  <header class="brand">
+    <div class="brand__bar">
+      <div class="brand__logo">
+        <img src="logo.png" alt="HTB Logo" />
+      </div>
+      <div class="brand__info">
+        <div class="brand__company">HTB Baugesellschaft m.b.H.</div>
+        <div class="brand__subtitle">Bodendokumentation · ÖNORM EN ISO 14688 · GeODin-Export</div>
+      </div>
     </div>
-    <h1>ISO 14688 Bohrkernansprache</h1>
   </header>
 
-  <main>
-    <details class="project-details" open>
-      <summary>
-        <div class="summary-content">
-          <span class="depth-summary">Projektdaten</span>
-          <span class="type-summary">Allgemeine Informationen zur Bohrung</span>
-        </div>
-        <div class="expand-icon">▼</div>
-      </summary>
+  <nav class="tabs" role="tablist" aria-label="Menü">
+    <button class="tab is-active" data-tab="doku" type="button">Dokumentation</button>
+    <button class="tab" data-tab="verlauf" type="button">Verlauf</button>
+    <button class="tab" data-tab="app" type="button">App</button>
+  </nav>
 
-      <div class="details-body grid" id="project-form">
-        <div><label>Projekt</label><input type="text" id="p-projekt" placeholder="Projektname"></div>
-        <div><label>Auftraggeber</label><input type="text" id="p-auftraggeber" placeholder="Kunde"></div>
-        <div><label>Kostenstelle</label><input type="text" id="p-kostenstelle" placeholder="Nummer"></div>
-        <div><label>Bohrlochnummer</label><input type="text" id="p-bohrloch" placeholder="z.B. B1"></div>
-        <div><label>Maschinentyp</label><input type="text" id="p-maschine" placeholder="Gerät"></div>
-        <div><label>Bohrmeister</label><input type="text" id="p-meister" placeholder="Name"></div>
-        <div><label>Verfasser</label><input type="text" id="p-verfasser" placeholder="Geologe / Techniker"></div>
-        <div><label>Datum</label><input type="date" id="p-datum"></div>
-        <div><label>Bohrbeginn</label><input type="time" id="p-beginn"></div>
-        <div><label>Bohrende</label><input type="time" id="p-ende"></div>
+  <!-- DOKUMENTATION -->
+  <main id="tab-doku" class="pane is-active" role="tabpanel">
+    <section class="card">
+      <div class="card__title">Stammdaten</div>
+
+      <div class="form-grid">
+        <label class="field">
+          <span class="field__label">Datum</span>
+          <input id="meta-date" class="field__input" type="date" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Bearbeiter</span>
+          <input id="meta-user" class="field__input" type="text" placeholder="Name" />
+        </label>
+
+        <label class="field field--full">
+          <span class="field__label">Projekt</span>
+          <input id="meta-project" class="field__input" type="text" placeholder="Projektname" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Bohrung / Aufschluss</span>
+          <input id="meta-borehole" class="field__input" type="text" placeholder="z. B. BS 01 / RKS 2" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Ort / Abschnitt</span>
+          <input id="meta-location" class="field__input" type="text" placeholder="Baufeld / Station / Achse" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Bohrverfahren / Gerät</span>
+          <input id="meta-device" class="field__input" type="text" placeholder="z. B. Rammkernsonde / Kernbohrgerät" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Bemerkung gesamt</span>
+          <input id="meta-note" class="field__input" type="text" placeholder="Allgemeine Notiz" />
+        </label>
       </div>
-    </details>
+    </section>
 
-    <div id="layers-container"></div>
+    <section class="card">
+      <div class="card__title">Aktionen</div>
+      <div class="buttons">
+        <button id="btnAddLayer" class="btn btn--accent" type="button">+ Schicht</button>
+        <button id="btnSave" class="btn btn--ghost" type="button">Speichern</button>
+        <button id="btnCsv" class="btn btn--ghost" type="button">GeODin CSV</button>
+        <button id="btnJson" class="btn btn--ghost" type="button">JSON</button>
+        <button id="btnPdf" class="btn btn--ghost" type="button">PDF</button>
+      </div>
+      <div class="hint">
+        Klick-Auswahl für normnahe Benennung. PDF öffnet in neuem Tab. CSV ist für GeODin-Feldmapping vorbereitet.
+      </div>
+    </section>
 
-    <button class="btn btn-primary add-layer-btn" onclick="addLayer()">
-      + Neue Schicht hinzufügen
-    </button>
+    <section class="card">
+      <div class="card__title">Schichten</div>
+      <div id="layerList" class="layerList"></div>
+    </section>
   </main>
 
-  <div class="actions-bar">
-    <button class="btn" onclick="exportTXT()">TXT Protokoll</button>
-    <button class="btn" onclick="exportCSV()">CSV Export</button>
-    <button class="btn btn-primary" onclick="copyToClipboard()">📋 Kopieren</button>
-  </div>
+  <!-- VERLAUF -->
+  <main id="tab-verlauf" class="pane" role="tabpanel" hidden>
+    <section class="card">
+      <div class="card__title">Gespeicherte Dokumentationen</div>
+      <div id="historyList" class="historyList"></div>
+      <div class="hint">Lokal gespeichert · offline verfügbar · neueste oben</div>
+    </section>
+  </main>
 
-  <script>
-    async function resetPWA() {
-      if ('serviceWorker' in navigator) {
-        const regs = await navigator.serviceWorker.getRegistrations();
-        for (const r of regs) await r.unregister();
-      }
-      if (window.caches) {
-        const keys = await caches.keys();
-        await Promise.all(keys.map(k => caches.delete(k)));
-      }
-      // Query entfernen
-      const url = new URL(location.href);
-      url.searchParams.delete('reset');
-      location.replace(url.toString());
-    }
+  <!-- APP -->
+  <main id="tab-app" class="pane" role="tabpanel" hidden>
+    <section class="card">
+      <div class="card__title">App-Hinweis</div>
+      <div class="text">
+        <p><b>Benennung:</b> Hauptanteil + Nebenanteile + Zustandsangaben nach ÖNORM EN ISO 14688.</p>
+        <p><b>GeODin:</b> Export als semikolongetrennte CSV mit einer Zeile je Schicht. In GeODin kann diese Datei i. d. R. per Feldzuordnung importiert werden.</p>
+        <p><b>Speicherung:</b> Draft und Verlauf bleiben lokal am Gerät gespeichert.</p>
+      </div>
+    </section>
 
-    // ?reset=1 -> SW + Cache löschen (Android-Fix)
-    if (new URL(location.href).searchParams.get('reset') === '1') {
-      resetPWA();
-    } else {
-      // Service Worker registrieren (nur wenn sw.js erreichbar ist)
-      (async () => {
-        if (!('serviceWorker' in navigator)) return;
-        try {
-          const res = await fetch('./sw.js', { cache: 'no-store' });
-          if (!res.ok) return; // sw.js existiert nicht -> kein SW
-          const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
-          reg.update?.();
-        } catch (e) {
-          // kein SW wenn etwas schiefgeht
-          console.log('SW nicht aktiv:', e);
-        }
-      })();
-    }
-  </script>
+    <section class="card">
+      <div class="card__title">Als App installieren</div>
+      <div class="text">
+        <p><b>Android:</b> Chrome-Menü → „App installieren“</p>
+        <p><b>iPhone:</b> Safari → Teilen → „Zum Home-Bildschirm“</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    &copy; <b>HTB Baugesellschaft m.b.H.</b> – Bodendokumentation PWA
+  </footer>
 </body>
 </html>

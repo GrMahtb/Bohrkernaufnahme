@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bohrkern-shell-v6';
+const CACHE_NAME = 'bohrkern-shell-v10';
 
 const SHELL = [
   './',

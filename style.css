@@ -14,6 +14,7 @@
 
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
+
 body{
   background:var(--bg);
   color:var(--text);
@@ -35,22 +36,12 @@ body{
   padding:10px 16px;
 }
 .brand__logo{
-  position:relative;
-  display:inline-flex;
+  display:flex;
   align-items:center;
   flex-shrink:0;
-}
-.brand__logo::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:var(--accent);
-  border-radius:4px;
-  z-index:0;
+  line-height:0;
 }
 .brand__logo img{
-  position:relative;
-  z-index:1;
   height:46px;
   width:auto;
   display:block;

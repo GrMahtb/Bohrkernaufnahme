@@ -1,38 +1,25 @@
-const CACHE = 'htb-bodendoku-14688-v1';
-const ASSETS = [
-  './',
-  './index.html',
-  './styles.css',
-  './app.js',
-  './manifest.json',
-  './icon.svg',
-  './logo.png',
-  './launchericon-192x192.png',
-  './launchericon-512x512.png'
-];
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
-});
-
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    fetch(event.request)
-      .then(res => {
-        const copy = res.clone();
-        caches.open(CACHE).then(cache => cache.put(event.request, copy));
-        return res;
-      })
-      .catch(() => caches.match(event.request))
-  );
-});
+{
+  "name": "HTB Bohrkernaufnahme",
+  "short_name": "HTB Bohrkern",
+  "description": "Bohrkernaufnahme und Bodendokumentation nach ÖNORM EN ISO 14688 mit GeODin-Export.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#111111",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "launchericon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "launchericon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

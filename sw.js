@@ -1,4 +1,4 @@
-const CACHE = 'htb-bohrkern-v60';
+const CACHE = 'htb-bohrkern-v70';
 const ASSETS = [
   './',
   './index.html',

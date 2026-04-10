@@ -2,8 +2,8 @@
 
 console.log('HTB Bohrkernaufnahme loaded');
 
-const STORAGE_DRAFT = 'htb-bohrkern-draft-v2';
-const STORAGE_HISTORY = 'htb-bohrkern-history-v2';
+const STORAGE_DRAFT = 'htb-bohrkern-14688-draft-v4';
+const STORAGE_HISTORY = 'htb-bohrkern-14688-history-v4';
 const HISTORY_MAX = 40;
 
 const $ = (id) => document.getElementById(id);
@@ -73,6 +73,15 @@ function clone(v) {
   return JSON.parse(JSON.stringify(v));
 }
 
+function h(v) {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function fmtDepth(v) {
   const n = Number(v);
   return Number.isFinite(n) ? n.toFixed(2) : '';
@@ -139,6 +148,16 @@ function defaultLayer(index = 0) {
   };
 }
 
+function hydrateLayer(layer, idx) {
+  const base = defaultLayer(idx);
+  return {
+    ...base,
+    ...layer,
+    secondary: Array.isArray(layer?.secondary) ? layer.secondary : [],
+    colors: Array.isArray(layer?.colors) ? layer.colors : []
+  };
+}
+
 function getLayer(id) {
   return state.layers.find(x => x.id === id);
 }
@@ -164,8 +183,10 @@ function loadDraft() {
     const raw = localStorage.getItem(STORAGE_DRAFT);
     if (!raw) return;
     const parsed = JSON.parse(raw);
-    if (parsed?.meta) state.meta = parsed.meta;
-    if (Array.isArray(parsed?.layers) && parsed.layers.length) state.layers = parsed.layers;
+    if (parsed?.meta) state.meta = { ...state.meta, ...parsed.meta };
+    if (Array.isArray(parsed?.layers) && parsed.layers.length) {
+      state.layers = parsed.layers.map((l, i) => hydrateLayer(l, i));
+    }
   } catch {}
 }
 
@@ -199,9 +220,10 @@ function saveCurrentToHistory() {
 
 function applyState(snapshot) {
   if (!snapshot) return;
-  state.meta = clone(snapshot.meta || state.meta);
-  state.layers = clone(snapshot.layers || []);
-  if (!state.layers.length) state.layers.push(defaultLayer(0));
+  state.meta = { ...state.meta, ...(snapshot.meta || {}) };
+  state.layers = Array.isArray(snapshot.layers) && snapshot.layers.length
+    ? snapshot.layers.map((l, i) => hydrateLayer(l, i))
+    : [defaultLayer(0)];
   syncMetaToUi();
   renderLayers();
   renderHistoryList();
@@ -218,24 +240,34 @@ function syncMetaToUi() {
   $('meta-note').value = state.meta.note || '';
 }
 
+function collectMetaFromUi() {
+  state.meta.date = $('meta-date').value || '';
+  state.meta.user = $('meta-user').value || '';
+  state.meta.project = $('meta-project').value || '';
+  state.meta.borehole = $('meta-borehole').value || '';
+  state.meta.location = $('meta-location').value || '';
+  state.meta.device = $('meta-device').value || '';
+  state.meta.note = $('meta-note').value || '';
+}
+
 function chipHtml({ layerId, field, value, active, soft = false }) {
   return `
     <button
       class="chip ${active ? 'is-active' : ''} ${soft ? 'chip--soft' : ''}"
       type="button"
-      data-chip-field="${field}"
-      data-id="${layerId}"
-      data-value="${value}"
-    >${value || '—'}</button>
+      data-chip-field="${h(field)}"
+      data-id="${h(layerId)}"
+      data-value="${h(value)}"
+    >${h(value || '—')}</button>
   `;
 }
 
 function selectHtml({ layerId, field, options, value, label }) {
   return `
     <label class="field">
-      <span class="field__label">${label}</span>
-      <select class="field__select" data-field="${field}" data-id="${layerId}">
-        ${options.map(opt => `<option value="${opt}" ${opt === value ? 'selected' : ''}>${opt || '—'}</option>`).join('')}
+      <span class="field__label">${h(label)}</span>
+      <select class="field__select" data-field="${h(field)}" data-id="${h(layerId)}">
+        ${options.map(opt => `<option value="${h(opt)}" ${opt === value ? 'selected' : ''}>${h(opt || '—')}</option>`).join('')}
       </select>
     </label>
   `;
@@ -247,12 +279,12 @@ function layerCardHtml(layer, idx, isOpen = false) {
   const summaryRange = `${fmtDepth(layer.from) || '—'} – ${fmtDepth(layer.to) || '—'} m`;
 
   return `
-    <details class="layerCard" data-id="${layer.id}" ${isOpen ? 'open' : ''}>
+    <details class="layerCard" data-id="${h(layer.id)}" ${isOpen ? 'open' : ''}>
       <summary>
         <div class="layerCard__title">
           <span>Schicht ${idx + 1}</span>
-          <span class="layerCard__sub js-summary-range">${summaryRange}</span>
-          <span class="layerCard__sub js-summary-desc">${descShort}</span>
+          <span class="layerCard__sub js-summary-range">${h(summaryRange)}</span>
+          <span class="layerCard__sub js-summary-desc">${h(descShort)}</span>
         </div>
       </summary>
 
@@ -260,27 +292,27 @@ function layerCardHtml(layer, idx, isOpen = false) {
         <div class="form-grid">
           <label class="field">
             <span class="field__label">Von [m]</span>
-            <input class="field__input" type="number" step="0.01" data-field="from" data-id="${layer.id}" value="${layer.from || ''}" />
+            <input class="field__input" type="number" step="0.01" data-field="from" data-id="${h(layer.id)}" value="${h(layer.from || '')}" />
           </label>
 
           <label class="field">
             <span class="field__label">Bis [m]</span>
-            <input class="field__input" type="number" step="0.01" data-field="to" data-id="${layer.id}" value="${layer.to || ''}" />
+            <input class="field__input" type="number" step="0.01" data-field="to" data-id="${h(layer.id)}" value="${h(layer.to || '')}" />
           </label>
 
           <label class="field">
             <span class="field__label">Proben-Nr.</span>
-            <input class="field__input" type="text" data-field="sampleNo" data-id="${layer.id}" value="${layer.sampleNo || ''}" />
+            <input class="field__input" type="text" data-field="sampleNo" data-id="${h(layer.id)}" value="${h(layer.sampleNo || '')}" />
           </label>
 
           <label class="field">
             <span class="field__label">Kernlauf</span>
-            <input class="field__input" type="text" data-field="coreRun" data-id="${layer.id}" value="${layer.coreRun || ''}" />
+            <input class="field__input" type="text" data-field="coreRun" data-id="${h(layer.id)}" value="${h(layer.coreRun || '')}" />
           </label>
 
           <label class="field">
             <span class="field__label">Kerngewinnung [%]</span>
-            <input class="field__input" type="number" step="1" min="0" max="100" data-field="recovery" data-id="${layer.id}" value="${layer.recovery || ''}" />
+            <input class="field__input" type="number" step="1" min="0" max="100" data-field="recovery" data-id="${h(layer.id)}" value="${h(layer.recovery || '')}" />
           </label>
 
           ${selectHtml({
@@ -412,24 +444,24 @@ function layerCardHtml(layer, idx, isOpen = false) {
 
         <div class="choiceBlock">
           <div class="choiceLabel">Kurzbeschreibung nach Norm</div>
-          <div class="readonly js-short-desc">${descShort}</div>
+          <div class="readonly js-short-desc">${h(descShort)}</div>
         </div>
 
         <div class="choiceBlock">
           <div class="choiceLabel">Detailbeschreibung</div>
-          <div class="readonly js-full-desc">${descFull}</div>
+          <div class="readonly js-full-desc">${h(descFull)}</div>
         </div>
 
         <div class="choiceBlock">
           <label class="field">
             <span class="field__label">Bemerkung</span>
-            <textarea class="field__textarea" data-field="note" data-id="${layer.id}">${layer.note || ''}</textarea>
+            <textarea class="field__textarea" data-field="note" data-id="${h(layer.id)}">${h(layer.note || '')}</textarea>
           </label>
         </div>
 
         <div class="layerActions">
-          <button class="miniBtn" type="button" data-act="dup" data-id="${layer.id}">Duplizieren</button>
-          <button class="miniBtn" type="button" data-act="del" data-id="${layer.id}">Löschen</button>
+          <button class="miniBtn" type="button" data-act="dup" data-id="${h(layer.id)}">Duplizieren</button>
+          <button class="miniBtn" type="button" data-act="del" data-id="${h(layer.id)}">Löschen</button>
         </div>
       </div>
     </details>
@@ -451,7 +483,7 @@ function renderLayers(openIds = null) {
 function refreshLayerComputed(id) {
   const layer = getLayer(id);
   if (!layer) return;
-  const card = document.querySelector(`.layerCard[data-id="${id}"]`);
+  const card = document.querySelector(`.layerCard[data-id="${CSS.escape(id)}"]`);
   if (!card) return;
 
   const range = `${fmtDepth(layer.from) || '—'} – ${fmtDepth(layer.to) || '—'} m`;
@@ -487,31 +519,21 @@ function renderHistoryList() {
     return `
       <div class="historyItem">
         <div class="historyTop">
-          <span>${entry.title}</span>
-          <span style="color:var(--muted);font-size:.82em">${new Date(entry.savedAt).toLocaleString('de-DE')}</span>
+          <span>${h(entry.title)}</span>
+          <span style="color:var(--muted);font-size:.82em">${h(new Date(entry.savedAt).toLocaleString('de-DE'))}</span>
         </div>
         <div class="historySub">
-          Projekt: <b>${project}</b> · Aufschluss: <b>${borehole}</b> · Schichten: <b>${count}</b>
+          Projekt: <b>${h(project)}</b> · Aufschluss: <b>${h(borehole)}</b> · Schichten: <b>${h(count)}</b>
         </div>
         <div class="historyBtns">
-          <button type="button" data-hact="load" data-id="${entry.id}">Laden</button>
-          <button type="button" data-hact="csv" data-id="${entry.id}">CSV</button>
-          <button type="button" data-hact="pdf" data-id="${entry.id}">PDF</button>
-          <button type="button" data-hact="del" data-id="${entry.id}">Löschen</button>
+          <button type="button" data-hact="load" data-id="${h(entry.id)}">Laden</button>
+          <button type="button" data-hact="csv" data-id="${h(entry.id)}">CSV</button>
+          <button type="button" data-hact="pdf" data-id="${h(entry.id)}">PDF</button>
+          <button type="button" data-hact="del" data-id="${h(entry.id)}">Löschen</button>
         </div>
       </div>
     `;
   }).join('');
-}
-
-function collectMetaFromUi() {
-  state.meta.date = $('meta-date').value || '';
-  state.meta.user = $('meta-user').value || '';
-  state.meta.project = $('meta-project').value || '';
-  state.meta.borehole = $('meta-borehole').value || '';
-  state.meta.location = $('meta-location').value || '';
-  state.meta.device = $('meta-device').value || '';
-  state.meta.note = $('meta-note').value || '';
 }
 
 function downloadText(filename, text, mime = 'text/plain;charset=utf-8') {
@@ -789,27 +811,29 @@ function hookLayerEvents() {
     }
 
     const act = e.target.closest('[data-act]');
-    if (act) {
-      const id = act.dataset.id;
-      const layer = getLayer(id);
-      if (!layer) return;
+    if (!act) return;
 
-      if (act.dataset.act === 'del') {
-        if (state.layers.length === 1) {
-          state.layers[0] = defaultLayer(0);
-        } else {
-          state.layers = state.layers.filter(x => x.id !== id);
-        }
-        renderLayers();
+    const id = act.dataset.id;
+    const layer = getLayer(id);
+    if (!layer) return;
+
+    if (act.dataset.act === 'del') {
+      if (!confirm('Schicht wirklich löschen?')) return;
+      if (state.layers.length === 1) {
+        state.layers[0] = defaultLayer(0);
+      } else {
+        state.layers = state.layers.filter(x => x.id !== id);
       }
+      renderLayers();
+      saveDraftDebounced();
+      return;
+    }
 
-      if (act.dataset.act === 'dup') {
-        const copy = clone(layer);
-        copy.id = uid();
-        state.layers.splice(state.layers.findIndex(x => x.id === id) + 1, 0, copy);
-        renderLayers([copy.id]);
-      }
-
+    if (act.dataset.act === 'dup') {
+      const copy = hydrateLayer(clone(layer), state.layers.length);
+      copy.id = uid();
+      state.layers.splice(state.layers.findIndex(x => x.id === id) + 1, 0, copy);
+      renderLayers([copy.id]);
       saveDraftDebounced();
     }
   });
@@ -863,14 +887,38 @@ function hookHistoryEvents() {
   });
 }
 
+function initInstallButton() {
+  let installPrompt = null;
+  const btn = $('btnInstall');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    installPrompt = e;
+    if (btn) btn.hidden = false;
+  });
+
+  btn?.addEventListener('click', async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    await installPrompt.userChoice;
+    installPrompt = null;
+    btn.hidden = true;
+  });
+
+  window.addEventListener('appinstalled', () => {
+    installPrompt = null;
+    if (btn) btn.hidden = true;
+  });
+}
+
 window.addEventListener('DOMContentLoaded', () => {
-  if (!state.layers.length) state.layers.push(defaultLayer(0));
-  if (!state.meta.date) state.meta.date = new Date().toISOString().slice(0, 10);
+  state.meta.date = new Date().toISOString().slice(0, 10);
+  state.layers = [defaultLayer(0)];
 
   loadDraft();
 
-  if (!state.layers.length) state.layers.push(defaultLayer(0));
   if (!state.meta.date) state.meta.date = new Date().toISOString().slice(0, 10);
+  if (!state.layers.length) state.layers = [defaultLayer(0)];
 
   initTabs();
   syncMetaToUi();
@@ -879,6 +927,7 @@ window.addEventListener('DOMContentLoaded', () => {
   hookMetaEvents();
   hookLayerEvents();
   hookHistoryEvents();
+  initInstallButton();
 
   $('btnAddLayer')?.addEventListener('click', () => {
     const lastTo = state.layers.length ? state.layers[state.layers.length - 1].to : 0;
@@ -918,33 +967,6 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
-});
-
-/* PWA Install */
-let _installPrompt = null;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  _installPrompt = e;
-  const btn = $('btnInstall');
-  if (btn) btn.hidden = false;
-});
-
-$('btnInstall')?.addEventListener('click', async () => {
-  if (!_installPrompt) return;
-  _installPrompt.prompt();
-  const { outcome } = await _installPrompt.userChoice;
-  if (outcome === 'accepted') {
-    const btn = $('btnInstall');
-    if (btn) btn.hidden = true;
-  }
-  _installPrompt = null;
-});
-
-window.addEventListener('appinstalled', () => {
-  const btn = $('btnInstall');
-  if (btn) btn.hidden = true;
-  _installPrompt = null;
 });

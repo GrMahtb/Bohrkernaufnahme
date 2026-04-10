@@ -1,12 +1,14 @@
-const CACHE = 'htb-bohrkern-14688-v20';
+const BASE = '/Bohrkernaufnahme/';
+const CACHE = 'htb-bohrkern-14688-v25';
+
 const ASSETS = [
-  './',
-  './index.html',
-  './styles.css',
-  './app.js',
-  './manifest.json',
-  './logo.svg',
-  './icon.svg'
+  BASE,
+  BASE + 'index.html',
+  BASE + 'styles.css',
+  BASE + 'app.js',
+  BASE + 'manifest.json',
+  BASE + 'logo.svg',
+  BASE + 'icon.svg'
 ];
 
 self.addEventListener('install', (event) => {
@@ -26,20 +28,18 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  const req = event.request;
-
   event.respondWith(
-    fetch(req)
+    fetch(event.request)
       .then((res) => {
         const clone = res.clone();
-        caches.open(CACHE).then((cache) => cache.put(req, clone));
+        caches.open(CACHE).then((cache) => cache.put(event.request, clone));
         return res;
       })
       .catch(async () => {
-        const cached = await caches.match(req);
+        const cached = await caches.match(event.request);
         if (cached) return cached;
-        if (req.mode === 'navigate') {
-          return caches.match('./index.html');
+        if (event.request.mode === 'navigate') {
+          return caches.match(BASE + 'index.html');
         }
       })
   );

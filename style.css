@@ -1,423 +1,350 @@
-/* ═══════════════════════════════════════════════
-   BOHRKERNANSPRACHE APP – ISO 14688
-   Corporate Design: Schwarz/Gelb – Dark Mode
-   Mobile-first · iOS & Android optimiert
-   ═══════════════════════════════════════════════ */
-
-/* ── CSS Custom Properties ── */
-:root {
-    /* Corporate Design Colors */
-    --bg:            #111111;
-    --surface:       #1e1e1e;
-    --surface-2:     #2c2c2c;
-    --primary:       #ffed00;
-    --primary-dark:  #ccbe00;
-    --text-main:     #ffffff;
-    --text-muted:    #aaaaaa;
-    --danger:        #ff5252;
-    --border:        #333333;
-    --radius:        8px;
-
-    /* ── NEU: iOS Safe-Area Insets ──────────────
-       Schützt vor Notch, Dynamic Island & Home-Indicator.
-       Werte kommen automatisch vom Gerät (default: 0px).
-       ─────────────────────────────────────────── */
-    --sat: env(safe-area-inset-top,    0px);
-    --sar: env(safe-area-inset-right,  0px);
-    --sab: env(safe-area-inset-bottom, 0px);
-    --sal: env(safe-area-inset-left,   0px);
+:root{
+  --bg:#0f0f10;
+  --card:#171718;
+  --card2:#202022;
+  --border:#2a2a2d;
+  --accent:#ffed00;
+  --text:#f2f2f2;
+  --muted:#8a8a92;
+  --ok:#00cc66;
+  --err:#ff4444;
+  --r:16px;
 }
 
-/* ── Reset & Base ── */
-*, *::before, *::after {
-    box-sizing: border-box;
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;
+  padding:0 14px 24px;
+  max-width:980px;
+  margin:0 auto;
 }
 
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-                 Helvetica, Arial, sans-serif;
-    background-color: var(--bg);
-    color: var(--text-main);
-    margin: 0;
-    padding: 0;
-    line-height: 1.5;
-
-    /* ── NEU: verhindert störenden Scroll-Bounce auf iOS ── */
-    overscroll-behavior: none;
+/* Header */
+.brand{margin:0 -14px 12px;overflow:hidden}
+.brand__bar{
+  background:#000;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:10px 16px;
+}
+.brand__logo{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+}
+.brand__logo::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:var(--accent);
+  border-radius:4px;
+  z-index:0;
+}
+.brand__logo img{
+  position:relative;
+  z-index:1;
+  height:46px;
+  width:auto;
+  display:block;
+}
+.brand__company{
+  color:#fff;
+  font-weight:900;
+  font-size:1.05em;
+  white-space:nowrap;
+}
+.brand__subtitle{
+  color:rgba(255,255,255,.55);
+  font-size:.75em;
+  margin-top:3px;
 }
 
-/* ══════════════════════════════════════
-   HEADER
-   – calc() schiebt den Inhalt unterhalb
-     der Notch / Dynamic Island (--sat)
-   ══════════════════════════════════════ */
-header {
-    background-color: var(--surface);
-    border-bottom: 2px solid var(--primary);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
+/* Tabs */
+.tabs{
+  display:flex;
+  gap:4px;
+  background:var(--card2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:4px;
+  margin-bottom:12px;
+}
+.tab{
+  flex:1;
+  border:none;
+  background:transparent;
+  color:var(--text);
+  padding:10px 6px;
+  border-radius:10px;
+  font-weight:900;
+  cursor:pointer;
+  font-size:.88em;
+}
+.tab.is-active{background:var(--accent);color:#111}
+.pane{display:none}
+.pane.is-active{display:block}
 
-    /* ── NEU: Safe-Area oben + links/rechts ── */
-    padding-top:    calc(14px + var(--sat));
-    padding-bottom: 14px;
-    padding-left:   calc(16px + var(--sal));
-    padding-right:  calc(16px + var(--sar));
+/* Card */
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:14px;
+  margin-bottom:12px;
+}
+.card__title{
+  font-size:.72em;
+  color:var(--accent);
+  text-transform:uppercase;
+  letter-spacing:1px;
+  font-weight:950;
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.card__title::before{
+  content:"";
+  width:3px;
+  height:14px;
+  border-radius:2px;
+  background:var(--accent);
 }
 
-.logo-container {
-    width: 44px;
-    height: 44px;
-    margin-right: 16px;
-    flex-shrink: 0;
+/* Form */
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+@media (max-width:680px){
+  .form-grid{grid-template-columns:1fr}
+}
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.field--full{grid-column:1 / -1}
+.field__label{
+  font-size:.75em;
+  color:var(--muted);
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+.field__input,.field__select,.field__textarea{
+  background:var(--card2);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:9px 12px;
+  font-size:.9em;
+  outline:none;
+  font-family:inherit;
+}
+.field__textarea{
+  min-height:76px;
+  resize:vertical;
 }
 
-.logo-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    border-radius: 10px;
+/* Buttons */
+.buttons{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+.btn{
+  border:none;
+  border-radius:999px;
+  padding:12px 22px;
+  font-weight:950;
+  cursor:pointer;
+  font-size:.95em;
+  font-family:inherit;
+}
+.btn--accent{background:var(--accent);color:#111}
+.btn--ghost{background:var(--card2);border:1px solid var(--border);color:var(--text)}
+
+/* Text */
+.hint{
+  margin-top:10px;
+  color:var(--muted);
+  font-size:.78em;
+  text-align:center;
+  line-height:1.5;
+}
+.text{
+  color:var(--muted);
+  font-size:.84em;
+  line-height:1.85;
+}
+.text p{margin-bottom:8px}
+.text p:last-child{margin-bottom:0}
+
+/* Layer cards */
+.layerList{display:flex;flex-direction:column;gap:10px}
+.layerCard{
+  background:var(--card2);
+  border:1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+}
+.layerCard > summary{
+  list-style:none;
+  cursor:pointer;
+  padding:14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  font-weight:900;
+}
+.layerCard > summary::-webkit-details-marker{display:none}
+.layerCard > summary::after{
+  content:"▾";
+  color:var(--muted);
+  font-size:1.2em;
+  transition:transform .2s ease;
+}
+.layerCard:not([open]) > summary::after{transform:rotate(-90deg)}
+.layerCard__title{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.layerCard__sub{
+  color:var(--muted);
+  font-size:.83em;
+  font-weight:700;
+}
+.layerBody{
+  padding:0 14px 14px;
+  border-top:1px solid var(--border);
 }
 
-header h1 {
-    margin: 0;
-    font-size: 1.2rem;
-    color: var(--primary);
-    letter-spacing: 0.02em;
+/* Chips */
+.choiceBlock{margin-top:12px}
+.choiceLabel{
+  font-size:.75em;
+  color:var(--muted);
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  margin-bottom:6px;
+}
+.chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.chip{
+  border:1px solid var(--border);
+  background:#111214;
+  color:var(--text);
+  padding:8px 12px;
+  border-radius:999px;
+  cursor:pointer;
+  font-size:.84em;
+  font-weight:800;
+  font-family:inherit;
+}
+.chip.is-active{
+  background:var(--accent);
+  color:#111;
+  border-color:var(--accent);
+}
+.chip--soft.is-active{
+  background:#2a2a12;
+  color:var(--accent);
+  border-color:#5b5500;
 }
 
-/* ══════════════════════════════════════
-   MAIN LAYOUT
-   – Platz unten: Aktionsleiste + Home-Indicator
-   ══════════════════════════════════════ */
-main {
-    max-width: 800px;
-    margin: 0 auto;
+/* Readonly output */
+.readonly{
+  background:#0f0f10;
+  border:1px dashed var(--border);
+  border-radius:12px;
+  padding:10px 12px;
+  line-height:1.6;
+  min-height:48px;
+  color:var(--text);
+}
+.readonly--muted{color:var(--muted)}
 
-    /* ── NEU: Safe-Area links/rechts + genug Platz für Aktionsleiste ── */
-    padding-top:    16px;
-    padding-left:   calc(16px + var(--sal));
-    padding-right:  calc(16px + var(--sar));
-    padding-bottom: calc(110px + var(--sab));
+/* Layer actions */
+.layerActions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+.miniBtn{
+  border:1px solid var(--border);
+  background:#111214;
+  color:var(--text);
+  padding:8px 14px;
+  border-radius:999px;
+  cursor:pointer;
+  font-size:.82em;
+  font-weight:900;
 }
 
-/* ══════════════════════════════════════
-   ACCORDIONS (details/summary)
-   ══════════════════════════════════════ */
-details {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: 16px;
-    overflow: hidden;
+/* History */
+.historyList{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.historyItem{
+  background:var(--card2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px;
+}
+.historyTop{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  font-weight:900;
+}
+.historySub{
+  color:var(--muted);
+  font-size:.82em;
+  margin-top:6px;
+  line-height:1.5;
+}
+.historyBtns{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+.historyBtns button{
+  border:none;
+  border-radius:999px;
+  padding:8px 12px;
+  background:#111214;
+  color:var(--text);
+  cursor:pointer;
+  font-weight:900;
+  border:1px solid var(--border);
+  font-size:.82em;
 }
 
-summary {
-    padding: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    user-select: none;
-    list-style: none;
-
-    /* ── NEU: größerer Touch-Target für Finger ── */
-    min-height: 52px;
+/* Footer */
+.footer{
+  text-align:center;
+  color:var(--muted);
+  font-size:.78em;
+  margin-top:16px;
+  padding:12px;
+  border-top:1px solid var(--border);
 }
-
-summary::marker,
-summary::-webkit-details-marker {
-    display: none;
-}
-
-summary:hover {
-    background: var(--surface-2);
-}
-
-.summary-content {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 0;
-}
-
-.depth-summary {
-    color: var(--primary);
-    font-size: 1.05rem;
-}
-
-.type-summary {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    font-weight: normal;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 55vw;
-}
-
-.expand-icon {
-    font-size: 1.1rem;
-    transition: transform 0.3s ease;
-    flex-shrink: 0;
-}
-
-details[open] > summary .expand-icon {
-    transform: rotate(180deg);
-}
-
-.details-body {
-    padding: 16px;
-}
-
-/* ══════════════════════════════════════
-   PROJEKTDATEN – GRID
-   ══════════════════════════════════════ */
-.grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
-}
-
-@media (min-width: 600px) {
-    .grid {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-/* ══════════════════════════════════════
-   FORM-ELEMENTE
-   ══════════════════════════════════════ */
-label {
-    display: block;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    margin-bottom: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-input[type="text"],
-input[type="number"],
-input[type="date"],
-input[type="time"] {
-    width: 100%;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    color: var(--text-main);
-    padding: 10px 12px;
-    border-radius: 4px;
-    font-family: inherit;
-    font-size: 0.95rem;
-    transition: border-color 0.2s;
-
-    /* ── NEU: iOS verhindert ungewolltes Zoom bei Fokus
-       wenn font-size < 16px – wir setzen 16px als Minimum ── */
-    font-size: max(16px, 0.95rem);
-
-    /* ── NEU: iOS Styling entfernen (kein Inset-Shadow) ── */
-    -webkit-appearance: none;
-    appearance: none;
-}
-
-input:focus {
-    outline: none;
-    border-color: var(--primary);
-}
-
-/* ══════════════════════════════════════
-   CLICK-CHIPS
-   ══════════════════════════════════════ */
-.chip-group-label {
-    margin-top: 20px;
-    margin-bottom: 8px;
-    font-size: 0.85rem;
-    font-weight: bold;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.chip-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.chip {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    color: var(--text-main);
-    padding: 8px 14px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
-    user-select: none;
-
-    /* ── NEU: Mindest Touch-Target 44×44px (Apple HIG) ── */
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-
-    /* ── NEU: kein Text-Highlight beim Antippen auf iOS ── */
-    -webkit-tap-highlight-color: transparent;
-}
-
-.chip:hover {
-    border-color: var(--primary-dark);
-    background: #383838;
-}
-
-.chip.selected {
-    background: var(--primary);
-    color: #000000;
-    border-color: var(--primary);
-    font-weight: bold;
-}
-
-/* ══════════════════════════════════════
-   SCHICHT-SPEZIFISCHES LAYOUT
-   ══════════════════════════════════════ */
-.depth-inputs {
-    display: flex;
-    align-items: flex-end;
-    gap: 12px;
-    margin-bottom: 8px;
-}
-
-.depth-inputs input {
-    width: 110px;
-}
-
-.depth-separator {
-    padding-bottom: 10px;
-    color: var(--text-muted);
-    font-size: 1.2rem;
-}
-
-/* Generierte ISO-Textvorschau */
-.preview-box {
-    background: #000000;
-    border-left: 4px solid var(--primary);
-    padding: 12px 16px;
-    margin-top: 24px;
-    border-radius: 0 4px 4px 0;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 0.9rem;
-    line-height: 1.6;
-    word-wrap: break-word;
-    color: #cccccc;
-}
-
-/* Schicht-Header rechts */
-.layer-header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
-}
-
-/* ══════════════════════════════════════
-   BUTTONS
-   ══════════════════════════════════════ */
-.btn {
-    background: var(--surface-2);
-    color: var(--text-main);
-    border: 1px solid var(--border);
-    padding: 12px 16px;
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 0.95rem;
-    font-family: inherit;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    transition: background 0.2s, border-color 0.2s;
-
-    /* ── NEU: Touch-Optimierungen ── */
-    min-height: 48px;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;   /* kein 300ms Delay auf iOS */
-}
-
-.btn:hover {
-    background: var(--border);
-}
-
-.btn-primary {
-    background: var(--primary);
-    color: #000000;
-    border-color: var(--primary);
-}
-
-.btn-primary:hover {
-    background: var(--primary-dark);
-    border-color: var(--primary-dark);
-}
-
-.btn-danger {
-    background: transparent;
-    color: var(--danger);
-    border: 1px solid var(--danger);
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-weight: bold;
-    cursor: pointer;
-    font-family: inherit;
-    transition: background 0.2s;
-    width: auto;
-
-    /* ── NEU: Touch-Optimierungen ── */
-    min-height: 44px;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-}
-
-.btn-danger:hover {
-    background: rgba(255, 82, 82, 0.12);
-}
-
-/* Button „Neue Schicht" */
-.add-layer-btn {
-    margin-top: 16px;
-    margin-bottom: 30px;
-}
-
-/* ══════════════════════════════════════
-   FIXE AKTIONSLEISTE (unten)
-   – calc() schiebt Inhalt über den
-     iPhone Home-Indicator (--sab)
-   ══════════════════════════════════════ */
-.actions-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: var(--surface);
-    border-top: 2px solid var(--primary);
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-    z-index: 90;
-
-    /* ── NEU: Safe-Area – Home-Indicator + Seitenränder ── */
-    padding-top:    12px;
-    padding-bottom: calc(12px + var(--sab));
-    padding-left:   calc(16px + var(--sal));
-    padding-right:  calc(16px + var(--sar));
-}
-
-@media (min-width: 600px) {
-    .actions-bar {
-        grid-template-columns: 1fr 1fr 1fr;
-    }
-}
+.footer b{color:var(--text)}

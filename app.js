@@ -1,9 +1,9 @@
 'use strict';
 
-console.log('HTB Bodendoku 14688 loaded');
+console.log('HTB Bohrkernaufnahme loaded');
 
-const STORAGE_DRAFT = 'htb-bodendoku-14688-draft-v1';
-const STORAGE_HISTORY = 'htb-bodendoku-14688-history-v1';
+const STORAGE_DRAFT = 'htb-bohrkern-draft-v2';
+const STORAGE_HISTORY = 'htb-bohrkern-history-v2';
 const HISTORY_MAX = 40;
 
 const $ = (id) => document.getElementById(id);
@@ -75,8 +75,7 @@ function clone(v) {
 
 function fmtDepth(v) {
   const n = Number(v);
-  if (Number.isFinite(n)) return n.toFixed(2);
-  return '';
+  return Number.isFinite(n) ? n.toFixed(2) : '';
 }
 
 function escCsv(v) {
@@ -166,9 +165,7 @@ function loadDraft() {
     if (!raw) return;
     const parsed = JSON.parse(raw);
     if (parsed?.meta) state.meta = parsed.meta;
-    if (Array.isArray(parsed?.layers) && parsed.layers.length) {
-      state.layers = parsed.layers;
-    }
+    if (Array.isArray(parsed?.layers) && parsed.layers.length) state.layers = parsed.layers;
   } catch {}
 }
 
@@ -244,13 +241,13 @@ function selectHtml({ layerId, field, options, value, label }) {
   `;
 }
 
-function layerCardHtml(layer, idx) {
+function layerCardHtml(layer, idx, isOpen = false) {
   const descShort = shortDescription(layer) || 'Beschreibung wählen';
   const descFull = fullDescription(layer) || 'Noch keine normnahe Beschreibung ausgewählt.';
   const summaryRange = `${fmtDepth(layer.from) || '—'} – ${fmtDepth(layer.to) || '—'} m`;
 
   return `
-    <details class="layerCard" data-id="${layer.id}" open>
+    <details class="layerCard" data-id="${layer.id}" ${isOpen ? 'open' : ''}>
       <summary>
         <div class="layerCard__title">
           <span>Schicht ${idx + 1}</span>
@@ -442,14 +439,13 @@ function layerCardHtml(layer, idx) {
 function renderLayers(openIds = null) {
   const host = $('layerList');
   if (!host) return;
-  const opened = Array.isArray(openIds) ? openIds : getOpenIds();
 
-  host.innerHTML = state.layers.map((layer, idx) => layerCardHtml(layer, idx)).join('');
+  const opened = Array.isArray(openIds) ? [...openIds] : getOpenIds();
+  if (!opened.length && state.layers.length) opened.push(state.layers[state.layers.length - 1].id);
 
-  opened.forEach(id => {
-    const el = host.querySelector(`.layerCard[data-id="${id}"]`);
-    if (el) el.open = true;
-  });
+  host.innerHTML = state.layers
+    .map((layer, idx) => layerCardHtml(layer, idx, opened.includes(layer.id)))
+    .join('');
 }
 
 function refreshLayerComputed(id) {
@@ -596,12 +592,12 @@ function buildCsv(snapshot = state) {
 }
 
 function exportCsv(snapshot = state) {
-  const name = `${(snapshot.meta?.date || 'datum').replaceAll('-', '')}_HTB_GeODin_Bodendoku.csv`;
+  const name = `${(snapshot.meta?.date || 'datum').replaceAll('-', '')}_HTB_GeODin_Bohrkern.csv`;
   downloadText(name, buildCsv(snapshot), 'text/csv;charset=utf-8');
 }
 
 function exportJson(snapshot = state) {
-  const name = `${(snapshot.meta?.date || 'datum').replaceAll('-', '')}_HTB_Bodendoku.json`;
+  const name = `${(snapshot.meta?.date || 'datum').replaceAll('-', '')}_HTB_Bohrkern.json`;
   downloadText(name, JSON.stringify(snapshot, null, 2), 'application/json;charset=utf-8');
 }
 
@@ -612,8 +608,8 @@ function wrapText(text, font, size, maxWidth) {
 
   words.forEach(word => {
     const test = line ? `${line} ${word}` : word;
-    const w = font.widthOfTextAtSize(test, size);
-    if (w <= maxWidth) {
+    const width = font.widthOfTextAtSize(test, size);
+    if (width <= maxWidth) {
       line = test;
     } else {
       if (line) lines.push(line);
@@ -636,30 +632,26 @@ async function exportPdf(snapshot = state) {
   const reg = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
 
-  const mm = (v) => v * 72 / 25.4;
   const PAGE_W = 595.28;
   const PAGE_H = 841.89;
+  const mm = (v) => v * 72 / 25.4;
   const margin = mm(10);
 
-  let page = null;
-  let y = 0;
+  let page;
+  let y;
 
   function newPage() {
     page = pdf.addPage([PAGE_W, PAGE_H]);
-    y = PAGE_H - margin;
-
-    // Header
     page.drawRectangle({ x: 0, y: PAGE_H - mm(18), width: PAGE_W, height: mm(18), color: rgb(0, 0, 0) });
     page.drawRectangle({ x: margin, y: PAGE_H - mm(14), width: mm(28), height: mm(10), color: rgb(1, 0.93, 0) });
     page.drawText('HTB', { x: margin + mm(8), y: PAGE_H - mm(10.7), size: 16, font: bold, color: rgb(0, 0, 0) });
-    page.drawText('Bodendokumentation · ÖNORM EN ISO 14688', {
+    page.drawText('Bohrkernaufnahme · ÖNORM EN ISO 14688', {
       x: margin + mm(34),
       y: PAGE_H - mm(10.5),
       size: 13,
       font: bold,
       color: rgb(1, 1, 1)
     });
-
     y = PAGE_H - mm(24);
   }
 
@@ -688,22 +680,20 @@ async function exportPdf(snapshot = state) {
   y -= mm(3);
 
   (snapshot.layers || []).forEach((layer, idx) => {
-    const from = layer.from || '—';
-    const to = layer.to || '—';
-    const title = `Schicht ${idx + 1}: ${from} m bis ${to} m`;
+    const title = `Schicht ${idx + 1}: ${layer.from || '—'} m bis ${layer.to || '—'} m`;
     const desc = `Beschreibung nach Norm: ${fullDescription(layer) || '—'}`;
     const tool = `Werkzeug / Verfahren: ${layer.tool || '—'}`;
     const core = `Proben-Nr.: ${layer.sampleNo || '—'} · Kernlauf: ${layer.coreRun || '—'} · Kerngewinnung: ${layer.recovery || '—'} %`;
     const note = `Bemerkung: ${layer.note || '—'}`;
 
     const lines = [
-      ...wrapText(desc, reg, 10, PAGE_W - 2 * margin),
-      ...wrapText(tool, reg, 10, PAGE_W - 2 * margin),
-      ...wrapText(core, reg, 10, PAGE_W - 2 * margin),
-      ...wrapText(note, reg, 10, PAGE_W - 2 * margin)
+      ...wrapText(desc, reg, 10, PAGE_W - 2 * margin - mm(4)),
+      ...wrapText(tool, reg, 10, PAGE_W - 2 * margin - mm(4)),
+      ...wrapText(core, reg, 10, PAGE_W - 2 * margin - mm(4)),
+      ...wrapText(note, reg, 10, PAGE_W - 2 * margin - mm(4))
     ];
 
-    const blockH = mm(8) + lines.length * mm(4.7) + mm(4);
+    const blockH = mm(10) + lines.length * mm(4.5) + mm(4);
     ensureSpace(blockH);
 
     page.drawRectangle({
@@ -716,16 +706,12 @@ async function exportPdf(snapshot = state) {
     });
 
     page.drawText(title, { x: margin + mm(2), y: y - mm(4), size: 11, font: bold, color: rgb(0, 0, 0) });
-    let yy = y - mm(9);
 
-    [...wrapText(desc, reg, 10, PAGE_W - 2 * margin - mm(4)),
-     ...wrapText(tool, reg, 10, PAGE_W - 2 * margin - mm(4)),
-     ...wrapText(core, reg, 10, PAGE_W - 2 * margin - mm(4)),
-     ...wrapText(note, reg, 10, PAGE_W - 2 * margin - mm(4))]
-      .forEach(line => {
-        page.drawText(line, { x: margin + mm(2), y: yy, size: 10, font: reg, color: rgb(0, 0, 0) });
-        yy -= mm(4.5);
-      });
+    let yy = y - mm(9);
+    lines.forEach(line => {
+      page.drawText(line, { x: margin + mm(2), y: yy, size: 10, font: reg, color: rgb(0, 0, 0) });
+      yy -= mm(4.5);
+    });
 
     y -= (blockH + mm(3));
   });
@@ -738,14 +724,13 @@ async function exportPdf(snapshot = state) {
   if (!w) {
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'HTB_Bodendoku_14688.pdf';
+    a.download = 'HTB_Bohrkernaufnahme.pdf';
     a.click();
   }
 
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
-/* Tabs */
 function initTabs() {
   document.querySelectorAll('.tab').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -760,7 +745,6 @@ function initTabs() {
   });
 }
 
-/* Events */
 function hookMetaEvents() {
   ['meta-date','meta-user','meta-project','meta-borehole','meta-location','meta-device','meta-note'].forEach(id => {
     $(id)?.addEventListener('input', () => {
@@ -833,24 +817,20 @@ function hookLayerEvents() {
   host.addEventListener('input', (e) => {
     const inp = e.target.closest('[data-field]');
     if (!inp) return;
-    const id = inp.dataset.id;
-    const field = inp.dataset.field;
-    const layer = getLayer(id);
+    const layer = getLayer(inp.dataset.id);
     if (!layer) return;
-    layer[field] = inp.value;
-    refreshLayerComputed(id);
+    layer[inp.dataset.field] = inp.value;
+    refreshLayerComputed(inp.dataset.id);
     saveDraftDebounced();
   });
 
   host.addEventListener('change', (e) => {
     const inp = e.target.closest('[data-field]');
     if (!inp) return;
-    const id = inp.dataset.id;
-    const field = inp.dataset.field;
-    const layer = getLayer(id);
+    const layer = getLayer(inp.dataset.id);
     if (!layer) return;
-    layer[field] = inp.value;
-    refreshLayerComputed(id);
+    layer[inp.dataset.field] = inp.value;
+    refreshLayerComputed(inp.dataset.id);
     saveDraftDebounced();
   });
 }
@@ -859,6 +839,7 @@ function hookHistoryEvents() {
   $('historyList')?.addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-hact]');
     if (!btn) return;
+
     const id = btn.dataset.id;
     const act = btn.dataset.hact;
     const list = readHistory();
@@ -882,13 +863,9 @@ function hookHistoryEvents() {
   });
 }
 
-/* Init */
 window.addEventListener('DOMContentLoaded', () => {
   if (!state.layers.length) state.layers.push(defaultLayer(0));
-
-  if (!state.meta.date) {
-    state.meta.date = new Date().toISOString().slice(0, 10);
-  }
+  if (!state.meta.date) state.meta.date = new Date().toISOString().slice(0, 10);
 
   loadDraft();
 
@@ -907,7 +884,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const lastTo = state.layers.length ? state.layers[state.layers.length - 1].to : 0;
     const next = defaultLayer(Number(lastTo || 0));
     next.from = fmtDepth(lastTo || 0);
-    next.to = fmtDepth((Number(lastTo || 0) + 1));
+    next.to = fmtDepth(Number(lastTo || 0) + 1);
     state.layers.push(next);
     renderLayers([next.id]);
     saveDraftDebounced();
@@ -943,4 +920,31 @@ window.addEventListener('DOMContentLoaded', () => {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
+});
+
+/* PWA Install */
+let _installPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _installPrompt = e;
+  const btn = $('btnInstall');
+  if (btn) btn.hidden = false;
+});
+
+$('btnInstall')?.addEventListener('click', async () => {
+  if (!_installPrompt) return;
+  _installPrompt.prompt();
+  const { outcome } = await _installPrompt.userChoice;
+  if (outcome === 'accepted') {
+    const btn = $('btnInstall');
+    if (btn) btn.hidden = true;
+  }
+  _installPrompt = null;
+});
+
+window.addEventListener('appinstalled', () => {
+  const btn = $('btnInstall');
+  if (btn) btn.hidden = true;
+  _installPrompt = null;
 });

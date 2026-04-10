@@ -6,8 +6,9 @@
   <meta name="theme-color" content="#111111" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-  <meta name="apple-mobile-web-app-title" content="HTB Bodendoku" />
-  <title>HTB Bodendokumentation – ÖNORM EN ISO 14688</title>
+  <meta name="apple-mobile-web-app-title" content="HTB Bohrkern" />
+
+  <title>HTB Bohrkernaufnahme – ÖNORM EN ISO 14688</title>
 
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/svg+xml" href="icon.svg" />
@@ -15,6 +16,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="launchericon-192x192.png" />
 
   <link rel="stylesheet" href="styles.css" />
+
   <script defer src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script defer src="app.js"></script>
 </head>
@@ -27,7 +29,7 @@
       </div>
       <div class="brand__info">
         <div class="brand__company">HTB Baugesellschaft m.b.H.</div>
-        <div class="brand__subtitle">Bodendokumentation · ÖNORM EN ISO 14688 · GeODin-Export</div>
+        <div class="brand__subtitle">Bohrkernaufnahme · ÖNORM EN ISO 14688 · GeODin-Export</div>
       </div>
     </div>
   </header>
@@ -38,48 +40,49 @@
     <button class="tab" data-tab="app" type="button">App</button>
   </nav>
 
-  <!-- DOKUMENTATION -->
+  <!-- DOKU -->
   <main id="tab-doku" class="pane is-active" role="tabpanel">
-    <section class="card">
-      <div class="card__title">Stammdaten</div>
+    <details class="card card--collapsible" open>
+      <summary class="card__title">Stammdaten</summary>
+      <div class="card__body">
+        <div class="form-grid">
+          <label class="field">
+            <span class="field__label">Datum</span>
+            <input id="meta-date" class="field__input" type="date" />
+          </label>
 
-      <div class="form-grid">
-        <label class="field">
-          <span class="field__label">Datum</span>
-          <input id="meta-date" class="field__input" type="date" />
-        </label>
+          <label class="field">
+            <span class="field__label">Bearbeiter</span>
+            <input id="meta-user" class="field__input" type="text" placeholder="Name" />
+          </label>
 
-        <label class="field">
-          <span class="field__label">Bearbeiter</span>
-          <input id="meta-user" class="field__input" type="text" placeholder="Name" />
-        </label>
+          <label class="field field--full">
+            <span class="field__label">Projekt</span>
+            <input id="meta-project" class="field__input" type="text" placeholder="Projektname" />
+          </label>
 
-        <label class="field field--full">
-          <span class="field__label">Projekt</span>
-          <input id="meta-project" class="field__input" type="text" placeholder="Projektname" />
-        </label>
+          <label class="field">
+            <span class="field__label">Aufschluss / Bohrung</span>
+            <input id="meta-borehole" class="field__input" type="text" placeholder="z. B. BK 01 / BS 03" />
+          </label>
 
-        <label class="field">
-          <span class="field__label">Bohrung / Aufschluss</span>
-          <input id="meta-borehole" class="field__input" type="text" placeholder="z. B. BS 01 / RKS 2" />
-        </label>
+          <label class="field">
+            <span class="field__label">Ort / Abschnitt</span>
+            <input id="meta-location" class="field__input" type="text" placeholder="Abschnitt / Achse / Baufeld" />
+          </label>
 
-        <label class="field">
-          <span class="field__label">Ort / Abschnitt</span>
-          <input id="meta-location" class="field__input" type="text" placeholder="Baufeld / Station / Achse" />
-        </label>
+          <label class="field">
+            <span class="field__label">Bohrgerät / Verfahren</span>
+            <input id="meta-device" class="field__input" type="text" placeholder="z. B. Kernbohrung / RKS" />
+          </label>
 
-        <label class="field">
-          <span class="field__label">Bohrverfahren / Gerät</span>
-          <input id="meta-device" class="field__input" type="text" placeholder="z. B. Rammkernsonde / Kernbohrgerät" />
-        </label>
-
-        <label class="field">
-          <span class="field__label">Bemerkung gesamt</span>
-          <input id="meta-note" class="field__input" type="text" placeholder="Allgemeine Notiz" />
-        </label>
+          <label class="field">
+            <span class="field__label">Gesamtbemerkung</span>
+            <input id="meta-note" class="field__input" type="text" placeholder="Allgemeine Notiz" />
+          </label>
+        </div>
       </div>
-    </section>
+    </details>
 
     <section class="card">
       <div class="card__title">Aktionen</div>
@@ -90,9 +93,7 @@
         <button id="btnJson" class="btn btn--ghost" type="button">JSON</button>
         <button id="btnPdf" class="btn btn--ghost" type="button">PDF</button>
       </div>
-      <div class="hint">
-        Klick-Auswahl für normnahe Benennung. PDF öffnet in neuem Tab. CSV ist für GeODin-Feldmapping vorbereitet.
-      </div>
+      <div class="hint">PDF öffnet in neuem Tab. CSV ist für GeODin-Feldzuordnung vorbereitet.</div>
     </section>
 
     <section class="card">
@@ -106,7 +107,7 @@
     <section class="card">
       <div class="card__title">Gespeicherte Dokumentationen</div>
       <div id="historyList" class="historyList"></div>
-      <div class="hint">Lokal gespeichert · offline verfügbar · neueste oben</div>
+      <div class="hint">Neueste oben · lokal gespeichert · offline verfügbar</div>
     </section>
   </main>
 
@@ -115,9 +116,9 @@
     <section class="card">
       <div class="card__title">App-Hinweis</div>
       <div class="text">
-        <p><b>Benennung:</b> Hauptanteil + Nebenanteile + Zustandsangaben nach ÖNORM EN ISO 14688.</p>
-        <p><b>GeODin:</b> Export als semikolongetrennte CSV mit einer Zeile je Schicht. In GeODin kann diese Datei i. d. R. per Feldzuordnung importiert werden.</p>
-        <p><b>Speicherung:</b> Draft und Verlauf bleiben lokal am Gerät gespeichert.</p>
+        <p><b>Benennung:</b> Hauptanteil, Nebenanteile und Zustandsbeschreibung nach ÖNORM EN ISO 14688.</p>
+        <p><b>Speicherung:</b> Draft und Verlauf bleiben lokal auf dem Gerät.</p>
+        <p><b>Export:</b> GeODin-CSV, JSON und PDF stehen direkt in der App zur Verfügung.</p>
       </div>
     </section>
 
@@ -131,7 +132,10 @@
   </main>
 
   <footer class="footer">
-    &copy; <b>HTB Baugesellschaft m.b.H.</b> – Bodendokumentation PWA
+    &copy; <b>HTB Baugesellschaft m.b.H.</b> – Bohrkernaufnahme PWA
+    <br />
+    <button id="btnInstall" class="btn btn--install" type="button" hidden>⬇ App installieren</button>
   </footer>
+
 </body>
 </html>

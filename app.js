@@ -1,9 +1,9 @@
 'use strict';
 
-console.log('HTB Bohrkernaufnahme v40 groups+quick loaded');
+console.log('HTB Bohrkernaufnahme v80 loaded');
 
-const STORAGE_DRAFT = 'htb-bohrkern-14688-draft-v40';
-const STORAGE_HISTORY = 'htb-bohrkern-14688-history-v40';
+const STORAGE_DRAFT = 'htb-bohrkern-14688-draft-v80';
+const STORAGE_HISTORY = 'htb-bohrkern-14688-history-v80';
 const HISTORY_MAX = 40;
 
 const $ = (id) => document.getElementById(id);
@@ -284,52 +284,6 @@ function syncQuickModeUi() {
   }
 }
 
-function chipHtml({ layerId, field, value, active, soft = false }) {
-  return `
-    <button
-      class="chip ${active ? 'is-active' : ''} ${soft ? 'chip--soft' : ''}"
-      type="button"
-      data-chip-field="${h(field)}"
-      data-id="${h(layerId)}"
-      data-value="${h(value)}"
-    >${h(value || '—')}</button>
-  `;
-}
-
-function selectHtml({ layerId, field, options, value, label }) {
-  return `
-    <label class="field">
-      <span class="field__label">${h(label)}</span>
-      <select class="field__select" data-field="${h(field)}" data-id="${h(layerId)}">
-        ${options.map(opt => `<option value="${h(opt)}" ${opt === value ? 'selected' : ''}>${h(opt || '—')}</option>`).join('')}
-      </select>
-    </label>
-  `;
-}
-
-function getStateMode(layer) {
-  const fam = getFamilyByMain(layer.main1);
-
-  if (['gravel', 'sand', 'stone', 'block'].includes(fam)) {
-    return {
-      label: 'Lagerungsdichte',
-      options: COARSE_STATE_OPTIONS
-    };
-  }
-
-  if (['silt', 'clay', 'peat', 'humus'].includes(fam)) {
-    return {
-      label: 'Konsistenz',
-      options: FINE_STATE_OPTIONS
-    };
-  }
-
-  return {
-    label: 'Lagerungsdichte / Konsistenz',
-    options: [...COARSE_STATE_OPTIONS, ...FINE_STATE_OPTIONS]
-  };
-}
-
 function basisSummary(layer) {
   const parts = [];
   if (layer.from || layer.to) parts.push(`${fmtDepth(layer.from) || '—'}–${fmtDepth(layer.to) || '—'} m`);
@@ -354,8 +308,42 @@ function stateSummary(layer) {
 }
 
 function reportSummary(layer) {
-  if (layer.note) return layer.note;
-  return fullDescription(layer) || 'Beschreibung und Notiz';
+  return layer.note || fullDescription(layer) || 'Beschreibung und Notiz';
+}
+
+function getStateMode(layer) {
+  const fam = getFamilyByMain(layer.main1);
+
+  if (['gravel', 'sand', 'stone', 'block'].includes(fam)) {
+    return { label: 'Lagerungsdichte', options: COARSE_STATE_OPTIONS };
+  }
+  if (['silt', 'clay', 'peat', 'humus'].includes(fam)) {
+    return { label: 'Konsistenz', options: FINE_STATE_OPTIONS };
+  }
+  return { label: 'Lagerungsdichte / Konsistenz', options: [...COARSE_STATE_OPTIONS, ...FINE_STATE_OPTIONS] };
+}
+
+function chipHtml({ layerId, field, value, active, soft = false }) {
+  return `
+    <button
+      class="chip ${active ? 'is-active' : ''} ${soft ? 'chip--soft' : ''}"
+      type="button"
+      data-chip-field="${h(field)}"
+      data-id="${h(layerId)}"
+      data-value="${h(value)}"
+    >${h(value || '—')}</button>
+  `;
+}
+
+function selectHtml({ layerId, field, options, value, label }) {
+  return `
+    <label class="field">
+      <span class="field__label">${h(label)}</span>
+      <select class="field__select" data-field="${h(field)}" data-id="${h(layerId)}">
+        ${options.map(opt => `<option value="${h(opt)}" ${opt === value ? 'selected' : ''}>${h(opt || '—')}</option>`).join('')}
+      </select>
+    </label>
+  `;
 }
 
 function subAccHtml({ layer, group, title, meta, body }) {
@@ -459,7 +447,7 @@ function namingGroupHtml(layer, quick) {
     </div>
 
     <div class="choiceBlock">
-      <div class="choiceLabel">Kornklasse ${quick ? '' : 'optional'}</div>
+      <div class="choiceLabel">Kornklasse optional</div>
       <div class="chips">
         ${GRAIN_OPTIONS.map(v => chipHtml({
           layerId: layer.id,
@@ -471,7 +459,7 @@ function namingGroupHtml(layer, quick) {
     </div>
 
     <div class="smartHint">
-      Hinweis: Bei annähernd gleichen Hauptanteilen kann ein Schrägstrich verwendet werden, z. B. KIES/SAND.
+      Bei annähernd gleichen Hauptanteilen kann ein Schrägstrich verwendet werden, z. B. KIES/SAND.
     </div>
   `;
 }
@@ -657,6 +645,7 @@ function renderLayers(openIds = null) {
 function refreshLayerComputed(id) {
   const layer = getLayer(id);
   if (!layer) return;
+
   const card = document.querySelector(`.layerCard[data-id="${id}"]`);
   if (!card) return;
 
@@ -674,12 +663,10 @@ function refreshLayerComputed(id) {
   if (shortEl) shortEl.textContent = s;
   if (fullEl) fullEl.textContent = f;
 
-  const subMeta = card.querySelectorAll('.subAcc');
-  subMeta.forEach(det => {
+  card.querySelectorAll('.subAcc').forEach(det => {
     const group = det.dataset.group;
     const metaEl = det.querySelector('.subAcc__meta');
     if (!metaEl) return;
-
     if (group === 'grpBase') metaEl.textContent = basisSummary(layer);
     if (group === 'grpName') metaEl.textContent = namingSummary(layer);
     if (group === 'grpState') metaEl.textContent = stateSummary(layer);
@@ -829,9 +816,101 @@ function wrapText(text, font, size, maxWidth) {
   return lines.length ? lines : [''];
 }
 
+function openHtmlReport(snapshot = state) {
+  const rows = (snapshot.layers || []).map((layer, idx) => `
+    <tr>
+      <td>${idx + 1}</td>
+      <td>${h(fmtDepth(layer.from))}</td>
+      <td>${h(fmtDepth(layer.to))}</td>
+      <td>${h(fullDescription(layer) || '—')}</td>
+      <td>${h(layer.tool || '—')}</td>
+      <td>${h(layer.sampleNo || '—')}</td>
+      <td>${h(layer.coreRun || '—')}</td>
+      <td>${h(layer.recovery || '—')}</td>
+      <td>${h(layer.note || '—')}</td>
+    </tr>
+  `).join('');
+
+  const html = `<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>HTB Bohrkernaufnahme Bericht</title>
+<style>
+body{font-family:Arial,sans-serif;margin:24px;color:#111}
+.head{display:flex;align-items:center;gap:16px;border-bottom:2px solid #111;padding-bottom:12px;margin-bottom:18px}
+.logo{width:120px}
+.title{font-size:22px;font-weight:700}
+.sub{color:#444;font-size:13px;margin-top:4px}
+.meta{margin:0 0 18px 0;font-size:13px;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{border:1px solid #bbb;padding:8px;vertical-align:top;text-align:left}
+th{background:#f3f3f3}
+.bar{margin:0 0 14px}
+.pdfbtn{display:inline-block;background:#111;color:#fff;border:none;border-radius:999px;padding:10px 16px;cursor:pointer;font-weight:700}
+@media print {.bar{display:none} body{margin:10mm}}
+</style>
+</head>
+<body>
+  <div class="bar">
+    <button class="pdfbtn" onclick="window.print()">Als PDF speichern / drucken</button>
+  </div>
+
+  <div class="head">
+    <div class="logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 637.8 496.06">
+        <rect width="637.8" height="496.06" fill="#ffed00"/>
+        <path fill="#111111" d="M531.5,177.12H148.73l43.08-28.73c6.57-4.38,14.29-6.72,22.18-6.72h285.8s-140.7-93.84-140.7-93.84c-.7-.48-1.44-.95-2.15-1.42-21.73-14.64-54.36-14.64-76.09,0-.72.48-1.44.94-2.15,1.42L66.6,189.29h0c-4.68,3.2-8.98,6.93-12.8,11.12-41.01,45.63-8.95,118.29,52.5,118.53h382.77l-43.08,28.73c-6.57,4.38-14.29,6.72-22.19,6.72H138.01s140.71,93.84,140.71,93.84c.7.49,1.44.95,2.15,1.43,21.73,14.64,54.36,14.64,76.09,0,.72-.48,1.44-.94,2.14-1.42l212.1-141.45h0c4.69-3.21,9.01-6.96,12.84-11.16,11.73-12.89,18.35-30.15,18.33-47.58,0-39.16-31.73-70.9-70.87-70.9Z"/>
+        <path fill="#ffed00" d="M438.32,263.5c.08-5.32-1.27-9.39-4.05-12.22-2.79-2.82-7.04-4.81-12.77-5.96,4.83-.9,8.43-2.8,10.81-5.71,2.37-2.91,3.56-6.61,3.56-11.11v-3.44c0-4.83-.94-8.72-2.82-11.67-1.88-2.95-4.75-5.08-8.6-6.39-3.85-1.31-8.72-1.96-14.61-1.96h-157.8v33.77h-30.21v-33.77h-22.59v85.96h22.59v-35.73h30.21v35.73h22.72v-69.26h33.52v69.26h22.84v-69.26h33.4v69.26h45.31c6.38,0,11.69-.78,15.9-2.33,4.21-1.55,7.41-3.99,9.58-7.31,2.17-3.32,3.25-7.55,3.25-12.71l-.25-5.16ZM386.87,220.77h18.42c2.78,0,4.81.57,6.08,1.72,1.27,1.15,1.9,3.11,1.9,5.89v3.19c0,1.96-.29,3.54-.86,4.73-.57,1.19-1.43,2.05-2.58,2.58-1.15.53-2.7.8-4.67.8h-18.3v-18.91ZM414.99,266.82c0,1.96-.31,3.58-.92,4.85-.61,1.27-1.56,2.17-2.82,2.7-1.27.53-2.93.8-4.97.8h-19.4v-21h19.4c2.13,0,3.83.25,5.1.74,1.27.49,2.19,1.35,2.76,2.58s.86,2.87.86,4.91v4.42Z"/>
+      </svg>
+    </div>
+    <div>
+      <div class="title">HTB Bohrkernaufnahme</div>
+      <div class="sub">ÖNORM EN ISO 14688 · Bericht / Kerndokumentation</div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <b>Projekt:</b> ${h(snapshot.meta?.project || '—')}<br>
+    <b>Aufschluss / Bohrung:</b> ${h(snapshot.meta?.borehole || '—')}<br>
+    <b>Datum:</b> ${h(snapshot.meta?.date || '—')}<br>
+    <b>Bearbeiter:</b> ${h(snapshot.meta?.user || '—')}<br>
+    <b>Ort / Abschnitt:</b> ${h(snapshot.meta?.location || '—')}<br>
+    <b>Bohrgerät / Verfahren:</b> ${h(snapshot.meta?.device || '—')}<br>
+    <b>Gesamtbemerkung:</b> ${h(snapshot.meta?.note || '—')}
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Schicht</th>
+        <th>Von [m]</th>
+        <th>Bis [m]</th>
+        <th>Beschreibung nach Norm</th>
+        <th>Werkzeug</th>
+        <th>Probe</th>
+        <th>Kernlauf</th>
+        <th>Kerngew. [%]</th>
+        <th>Bemerkung</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows || '<tr><td colspan="9">Keine Schichten vorhanden.</td></tr>'}
+    </tbody>
+  </table>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const w = window.open(url, '_blank');
+  if (!w) alert('Popup blockiert – bitte Popups erlauben.');
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
 async function exportPdf(snapshot = state) {
   if (!window.PDFLib) {
-    alert('PDF-Library noch nicht geladen.');
+    openHtmlReport(snapshot);
     return;
   }
 
@@ -863,8 +942,8 @@ async function exportPdf(snapshot = state) {
     y = PAGE_H - mm(24);
   }
 
-  function ensureSpace(h) {
-    if (!page || y - h < margin) newPage();
+  function ensureSpace(hh) {
+    if (!page || y - hh < margin) newPage();
   }
 
   newPage();
@@ -999,6 +1078,13 @@ function hookLayerEvents() {
         layer[field] = arr;
       } else {
         layer[field] = layer[field] === value ? '' : value;
+      }
+
+      if (field === 'main1') {
+        const allowed = getStateMode(layer).options;
+        if (layer.state && !allowed.includes(layer.state)) {
+          layer.state = '';
+        }
       }
 
       const openIds = getOpenIds();
@@ -1168,12 +1254,12 @@ window.addEventListener('DOMContentLoaded', () => {
       await exportPdf(state);
     } catch (err) {
       console.error(err);
-      alert('PDF-Fehler: ' + (err?.message || String(err)));
+      openHtmlReport(state);
     }
   });
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/Bohrkernaufnahme/sw.js?v=70').catch((err) => {
+    navigator.serviceWorker.register('/Bohrkernaufnahme/sw.js?v=80').catch((err) => {
       console.error('SW registration failed:', err);
     });
   }

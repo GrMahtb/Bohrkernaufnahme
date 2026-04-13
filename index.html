@@ -370,7 +370,6 @@
     <button class="tab" data-tab="app" type="button">App</button>
   </nav>
 
-  <!-- DOKU -->
   <main id="tab-doku" class="pane is-active" role="tabpanel">
     <details class="card card--collapsible" open>
       <summary class="card__title">Stammdaten</summary>
@@ -393,7 +392,7 @@
 
           <label class="field">
             <span class="field__label">Aufschluss / Bohrung</span>
-            <input id="meta-borehole" class="field__input" type="text" placeholder="z. B. BK01" />
+            <input id="meta-borehole" class="field__input" type="text" placeholder="z. B. BK01 oder Schurf 1" />
           </label>
 
           <label class="field">
@@ -442,7 +441,6 @@
     </section>
   </main>
 
-  <!-- FOTODOKU -->
   <main id="tab-photo" class="pane" role="tabpanel" hidden>
     <section class="card">
       <div class="card__title">Fotodoku Kernkiste</div>
@@ -455,17 +453,17 @@
       <div class="form-grid">
         <label class="field">
           <span class="field__label">Projekt</span>
-          <input id="photo-project" class="field__input" type="text" readonly />
+          <input id="photo-project" class="field__input" type="text" placeholder="Projektname" />
         </label>
 
         <label class="field">
           <span class="field__label">Aufschluss / Bohrung</span>
-          <input id="photo-borehole" class="field__input" type="text" readonly />
+          <input id="photo-borehole" class="field__input" type="text" placeholder="z. B. BK01 oder Schurf 1" />
         </label>
 
         <label class="field">
           <span class="field__label">Kernende [m]</span>
-          <input id="photo-end-depth" class="field__input" type="number" step="0.01" placeholder="z. B. 31" />
+          <input id="photo-end-depth" class="field__input" type="text" inputmode="decimal" placeholder="z. B. 3 oder 13" />
         </label>
 
         <div class="field">
@@ -516,7 +514,6 @@
     </section>
   </main>
 
-  <!-- VERLAUF -->
   <main id="tab-verlauf" class="pane" role="tabpanel" hidden>
     <section class="card">
       <div class="card__title">Gespeicherte Dokumentationen</div>
@@ -531,7 +528,6 @@
     </section>
   </main>
 
-  <!-- APP -->
   <main id="tab-app" class="pane" role="tabpanel" hidden>
     <section class="card">
       <div class="card__title">App-Hinweis</div>

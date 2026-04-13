@@ -10,14 +10,14 @@
 
   <title>HTB Bohrkernaufnahme – ÖNORM EN ISO 14688</title>
 
-  <link rel="manifest" href="/Bohrkernaufnahme/manifest.json?v=90" />
-  <link rel="icon" type="image/svg+xml" href="/Bohrkernaufnahme/icon.svg?v=90" />
-  <link rel="icon" type="image/png" sizes="192x192" href="/Bohrkernaufnahme/launchericon-192x192.png?v=90" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/Bohrkernaufnahme/launchericon-192x192.png?v=90" />
+  <link rel="manifest" href="/Bohrkernaufnahme/manifest.json?v=91" />
+  <link rel="icon" type="image/svg+xml" href="/Bohrkernaufnahme/icon.svg?v=91" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/Bohrkernaufnahme/launchericon-192x192.png?v=91" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/Bohrkernaufnahme/launchericon-192x192.png?v=91" />
   <link rel="stylesheet" href="/Bohrkernaufnahme/styles.css?v=90" />
 
   <script defer src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script defer src="/Bohrkernaufnahme/app.js?v=90"></script>
+  <script defer src="/Bohrkernaufnahme/app.js?v=91"></script>
 
   <style>
     .modeBar{
@@ -162,6 +162,12 @@
       padding:6px 12px;
       font-size:.78em;
       font-weight:900;
+    }
+
+    .photoBtnStack{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
     }
 
     .photoBoxList{
@@ -331,6 +337,10 @@
       cursor:pointer;
     }
 
+    .fabPhoto.is-hidden{
+      display:none;
+    }
+
     .fabPhoto:hover{
       filter:brightness(1.05);
     }
@@ -354,7 +364,7 @@
   <header class="brand">
     <div class="brand__bar">
       <div class="brand__logo">
-        <img src="/Bohrkernaufnahme/logo.svg?v=90" alt="HTB Logo" />
+        <img src="/Bohrkernaufnahme/logo.svg?v=91" alt="HTB Logo" />
       </div>
       <div class="brand__info">
         <div class="brand__company">HTB Baugesellschaft m.b.H.</div>
@@ -447,7 +457,7 @@
 
       <div class="photoTopBar">
         <div class="photoTag">Automatik: 2-m-Kernkisten</div>
-        <div class="photoTag">Speicherung: komprimiert + ZIP</div>
+        <div class="photoTag">Nächstes Foto → nächste Kiste</div>
       </div>
 
       <div class="form-grid">
@@ -468,12 +478,15 @@
 
         <div class="field">
           <span class="field__label">&nbsp;</span>
-          <button id="btnGenerateBoxes" class="btn btn--green" type="button">Kernkisten erzeugen</button>
+          <div class="photoBtnStack">
+            <button id="btnGenerateBoxes" class="btn btn--green" type="button">Kernkisten erzeugen</button>
+            <button id="btnTakePhoto" class="btn btn--green" type="button">📷 Foto aufnehmen</button>
+          </div>
         </div>
       </div>
 
       <div class="smartHint">
-        Bezeichnung automatisch aus Aufschluss + Tiefenbereich, z. B. <b>BK01_0-2m</b>, <b>BK01_2-4m</b>, letzte Kiste gekürzt, z. B. <b>BK01_30-31m</b>.
+        Nach jeder Fotoauswahl springt die Auswahl automatisch zur nächsten tieferen Kiste. Für ein Detailfoto einfach später wieder auf die gewünschte Kiste klicken.
       </div>
 
       <div id="photoBoxList" class="photoBoxList"></div>
@@ -484,7 +497,7 @@
 
       <div class="choiceBlock">
         <label class="field">
-          <span class="field__label">Bemerkung Fotodoku</span>
+          <span class="field__label">Bemerkung Fotodoku (für gewählte Kiste)</span>
           <textarea id="photo-note" class="field__textarea" placeholder="z. B. Kernkiste vollständig, Wasserzutritt, Kernverlust, Probe sichtbar …"></textarea>
         </label>
       </div>
@@ -500,11 +513,11 @@
 
       <div class="photoActions">
         <button id="btnPhotoSave" class="btn btn--green" type="button">Fotodoku speichern</button>
-        <button id="btnPhotoClear" class="btn btn--ghost" type="button">Fotos verwerfen</button>
+        <button id="btnPhotoClear" class="btn btn--ghost" type="button">Ungespeicherte Fotos verwerfen</button>
       </div>
 
       <div class="hint">
-        Bilder werden vor dem Speichern komprimiert und erst beim Download als ZIP pro Kernkiste exportiert.
+        Bilder werden vor dem Speichern komprimiert. Beim Download wird je Kernkiste ein ZIP mit Bildern und meta.json erzeugt.
       </div>
     </section>
 
@@ -533,7 +546,7 @@
       <div class="card__title">App-Hinweis</div>
       <div class="text">
         <p><b>4 Gruppen pro Schicht:</b> Tiefe & Kerndaten · Bodenbenennung · Zustand & Zusatz · Beschreibung & Notiz</p>
-        <p><b>Fotodoku:</b> Kernkisten werden automatisch in 2-m-Abschnitten erzeugt und mit komprimierten Bildern als ZIP exportiert.</p>
+        <p><b>Fotodoku:</b> Kernkisten werden automatisch in 2-m-Abschnitten erzeugt. Nach jedem Foto wird automatisch die nächste tiefere Kiste vorgeschlagen.</p>
         <p><b>Export:</b> GeODin-CSV, JSON, Bericht und Fotodoku-ZIP stehen direkt in der App zur Verfügung.</p>
       </div>
     </section>

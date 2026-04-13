@@ -1075,14 +1075,19 @@ function renderPhotoBoxes() {
   const host = $('photoBoxList');
   if (!host) return;
 
-  const borehole = $('photo-borehole')?.value || state.meta.borehole || '';
-  const endDepth = Number(photoDraft.endDepth || $('photo-end-depth')?.value || getMaxEndDepth());
+  const borehole = String(($('photo-borehole')?.value || state.meta.borehole || '')).trim();
+  const rawEnd = String(photoDraft.endDepth ?? $('photo-end-depth')?.value ?? '').trim().replace(',', '.');
+  const endDepth = rawEnd === '' ? NaN : Number(rawEnd);
+
+  const endInput = $('photo-end-depth');
+  if (endInput && document.activeElement !== endInput) {
+    endInput.value = photoDraft.endDepth || '';
+  }
+
   const boxes = generateCoreBoxes(endDepth, borehole);
 
-  if ($('photo-end-depth')) $('photo-end-depth').value = Number.isFinite(endDepth) && endDepth > 0 ? String(endDepth) : '';
-
   if (!boxes.length) {
-    host.innerHTML = `<div class="text"><p>Bitte zuerst eine Aufschlussbezeichnung und ein Kernende angeben.</p></div>`;
+    host.innerHTML = `<div class="text"><p>Bitte Aufschluss und Kernende eingeben.</p></div>`;
     setSelectedPhotoBox(null);
     renderPhotoSelectedBox();
     return;
@@ -1110,20 +1115,31 @@ function renderPhotoBoxes() {
 }
 
 function syncPhotoPanel(forceDepth = false) {
-  collectMetaFromUi();
-
-  if ($('photo-project')) $('photo-project').value = state.meta.project || '';
-  if ($('photo-borehole')) $('photo-borehole').value = state.meta.borehole || '';
-
+  const projectInput = $('photo-project');
+  const boreholeInput = $('photo-borehole');
   const depthInput = $('photo-end-depth');
+  const noteInput = $('photo-note');
   const maxDepth = getMaxEndDepth();
 
-  if (forceDepth || !photoDraft.endDepth) {
+  if (projectInput && document.activeElement !== projectInput) {
+    projectInput.value = state.meta.project || '';
+  }
+
+  if (boreholeInput && document.activeElement !== boreholeInput) {
+    boreholeInput.value = state.meta.borehole || '';
+  }
+
+  if (forceDepth && !String(photoDraft.endDepth || '').trim()) {
     photoDraft.endDepth = maxDepth > 0 ? compactDepth(maxDepth) : '';
   }
 
-  if (depthInput) depthInput.value = photoDraft.endDepth || '';
-  if ($('photo-note')) $('photo-note').value = photoDraft.note || '';
+  if (depthInput && document.activeElement !== depthInput) {
+    depthInput.value = photoDraft.endDepth || '';
+  }
+
+  if (noteInput && document.activeElement !== noteInput) {
+    noteInput.value = photoDraft.note || '';
+  }
 
   renderPhotoBoxes();
   renderPhotoPreviews();
@@ -1157,7 +1173,7 @@ function renderPhotoPreviews() {
 
   host.innerHTML = photoDraft.queue.map((item, idx) => `
     <div class="photoPreviewItem">
-      <img src="${item.url}" alt="${h(item.name)}">
+      <img src="${item.url}" alt="${item.name}">
       <div class="photoPreviewMeta">
         <b>${h(item.name)}</b>
         <span>${h(formatBytes(item.size))}</span>
@@ -1187,12 +1203,11 @@ function loadImage(file) {
 
 async function compressImageFile(file, prefix, order) {
   const img = await loadImage(file);
-  const maxEdge = PHOTO_MAX_EDGE;
   const w = img.naturalWidth || img.width;
-  const h = img.naturalHeight || img.height;
-  const scale = Math.min(1, maxEdge / Math.max(w, h));
+  const hgt = img.naturalHeight || img.height;
+  const scale = Math.min(1, PHOTO_MAX_EDGE / Math.max(w, hgt));
   const tw = Math.max(1, Math.round(w * scale));
-  const th = Math.max(1, Math.round(h * scale));
+  const th = Math.max(1, Math.round(hgt * scale));
 
   const canvas = document.createElement('canvas');
   canvas.width = tw;
@@ -1201,11 +1216,7 @@ async function compressImageFile(file, prefix, order) {
   ctx.drawImage(img, 0, 0, tw, th);
 
   const blob = await new Promise((resolve) => {
-    canvas.toBlob(
-      (b) => resolve(b || file),
-      'image/jpeg',
-      PHOTO_QUALITY
-    );
+    canvas.toBlob((b) => resolve(b || file), 'image/jpeg', PHOTO_QUALITY);
   });
 
   const safePrefix = sanitizeName(prefix);
@@ -1237,8 +1248,14 @@ async function handlePhotoFiles(files) {
 async function savePhotoDoc() {
   collectMetaFromUi();
 
-  const project = state.meta.project || '';
-  const borehole = state.meta.borehole || '';
+  const project = String($('photo-project')?.value || state.meta.project || '').trim();
+  const borehole = String($('photo-borehole')?.value || state.meta.borehole || '').trim();
+
+  state.meta.project = project;
+  state.meta.borehole = borehole;
+
+  if ($('meta-project')) $('meta-project').value = project;
+  if ($('meta-borehole')) $('meta-borehole').value = borehole;
 
   if (!borehole) {
     alert('Bitte zuerst eine Aufschlussbezeichnung eingeben.');
@@ -1285,6 +1302,7 @@ async function savePhotoDoc() {
   clearPhotoDraft(false);
   renderPhotoHistoryLists();
   renderPhotoBoxes();
+  saveDraftDebounced();
   alert(`Fotodoku gespeichert: ${entry.boxLabel}`);
 }
 
@@ -1551,12 +1569,29 @@ function hookPhotoEvents() {
     document.querySelector('.tab[data-tab="photo"]')?.click();
   });
 
+  $('photo-project')?.addEventListener('input', () => {
+    state.meta.project = $('photo-project')?.value || '';
+    if ($('meta-project')) $('meta-project').value = state.meta.project;
+    saveDraftDebounced();
+  });
+
+  $('photo-borehole')?.addEventListener('input', () => {
+    state.meta.borehole = $('photo-borehole')?.value || '';
+    if ($('meta-borehole')) $('meta-borehole').value = state.meta.borehole;
+    renderPhotoBoxes();
+    saveDraftDebounced();
+  });
+
   $('btnGenerateBoxes')?.addEventListener('click', () => {
     photoDraft.endDepth = $('photo-end-depth')?.value || '';
     renderPhotoBoxes();
   });
 
   $('photo-end-depth')?.addEventListener('input', () => {
+    photoDraft.endDepth = $('photo-end-depth')?.value || '';
+  });
+
+  $('photo-end-depth')?.addEventListener('change', () => {
     photoDraft.endDepth = $('photo-end-depth')?.value || '';
     renderPhotoBoxes();
   });
@@ -1711,29 +1746,3 @@ window.addEventListener('DOMContentLoaded', () => {
 
   $('btnSave')?.addEventListener('click', () => {
     collectMetaFromUi();
-    saveCurrentToHistory();
-    saveDraftDebounced();
-    alert('Dokumentation im Verlauf gespeichert.');
-  });
-
-  $('btnCsv')?.addEventListener('click', () => {
-    collectMetaFromUi();
-    exportCsv(state);
-  });
-
-  $('btnJson')?.addEventListener('click', () => {
-    collectMetaFromUi();
-    exportJson(state);
-  });
-
-  $('btnPdf')?.addEventListener('click', () => {
-    collectMetaFromUi();
-    openHtmlReport(state);
-  });
-
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/Bohrkernaufnahme/sw.js?v=90').catch((err) => {
-      console.error('SW registration failed:', err);
-    });
-  }
-});

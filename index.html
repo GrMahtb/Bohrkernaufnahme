@@ -10,14 +10,14 @@
 
   <title>HTB Bohrkernaufnahme – ÖNORM EN ISO 14688</title>
 
-  <link rel="manifest" href="/Bohrkernaufnahme/manifest.json?v=81" />
-<link rel="icon" type="image/svg+xml" href="/Bohrkernaufnahme/icon.svg?v=81" />
-<link rel="icon" type="image/png" sizes="192x192" href="/Bohrkernaufnahme/launchericon-192x192.png?v=81" />
-<link rel="apple-touch-icon" sizes="180x180" href="/Bohrkernaufnahme/launchericon-192x192.png?v=81" />
-<link rel="stylesheet" href="/Bohrkernaufnahme/styles.css?v=81" />
+  <link rel="manifest" href="/Bohrkernaufnahme/manifest.json?v=90" />
+  <link rel="icon" type="image/svg+xml" href="/Bohrkernaufnahme/icon.svg?v=90" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/Bohrkernaufnahme/launchericon-192x192.png?v=90" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/Bohrkernaufnahme/launchericon-192x192.png?v=90" />
+  <link rel="stylesheet" href="/Bohrkernaufnahme/styles.css?v=90" />
 
-<script defer src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-<script defer src="/Bohrkernaufnahme/app.js?v=81"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script defer src="/Bohrkernaufnahme/app.js?v=90"></script>
 
   <style>
     .modeBar{
@@ -141,6 +141,212 @@
       font-size:.76em;
       line-height:1.5;
     }
+
+    .photoTopBar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:10px;
+    }
+
+    .photoTag{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      background:#0d2414;
+      color:#6ef0a0;
+      border:1px solid #1f6b3a;
+      border-radius:999px;
+      padding:6px 12px;
+      font-size:.78em;
+      font-weight:900;
+    }
+
+    .photoBoxList{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .photoBoxBtn{
+      border:1px solid var(--border);
+      background:#111214;
+      color:var(--text);
+      padding:9px 12px;
+      border-radius:999px;
+      cursor:pointer;
+      font-size:.83em;
+      font-weight:850;
+      font-family:inherit;
+    }
+
+    .photoBoxBtn.is-used{
+      border-color:#5b5500;
+      color:#d9cb59;
+      background:#25240f;
+    }
+
+    .photoBoxBtn.is-active{
+      background:#00a651;
+      color:#fff;
+      border-color:#00a651;
+    }
+
+    .photoSelected{
+      margin-top:12px;
+      background:#111214;
+      border:1px dashed #3a3a42;
+      border-radius:12px;
+      padding:12px;
+      line-height:1.6;
+      font-size:.86em;
+    }
+
+    .photoPreviewList{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+
+    .photoPreviewItem{
+      background:#111214;
+      border:1px solid var(--border);
+      border-radius:12px;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .photoPreviewItem img{
+      width:100%;
+      aspect-ratio:4/3;
+      object-fit:cover;
+      display:block;
+      background:#000;
+    }
+
+    .photoPreviewMeta{
+      padding:10px;
+      font-size:.76em;
+      color:var(--muted);
+      line-height:1.5;
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-height:86px;
+    }
+
+    .photoPreviewMeta b{
+      color:var(--text);
+      word-break:break-word;
+    }
+
+    .photoPreviewActions{
+      padding:0 10px 10px;
+    }
+
+    .photoMiniDel{
+      border:none;
+      border-radius:999px;
+      padding:7px 12px;
+      background:#331414;
+      color:#ff9c9c;
+      cursor:pointer;
+      font-size:.78em;
+      font-weight:900;
+      width:100%;
+    }
+
+    .photoActions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:center;
+      margin-top:12px;
+    }
+
+    .btn--green{
+      background:#00a651;
+      color:#fff;
+    }
+
+    .photoHistoryItem{
+      background:var(--card2);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+    }
+
+    .photoHistoryTop{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      font-weight:900;
+    }
+
+    .photoHistorySub{
+      color:var(--muted);
+      font-size:.82em;
+      margin-top:6px;
+      line-height:1.6;
+    }
+
+    .photoHistoryBtns{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+
+    .photoHistoryBtns button{
+      border:none;
+      border-radius:999px;
+      padding:8px 12px;
+      background:#111214;
+      color:var(--text);
+      cursor:pointer;
+      font-weight:900;
+      border:1px solid var(--border);
+      font-size:.82em;
+    }
+
+    .fabPhoto{
+      position:fixed;
+      right:16px;
+      bottom:18px;
+      z-index:999;
+      border:none;
+      border-radius:999px;
+      background:#00a651;
+      color:#fff;
+      padding:14px 18px;
+      font-weight:950;
+      font-size:.92em;
+      box-shadow:0 10px 24px rgba(0,0,0,.35);
+      cursor:pointer;
+    }
+
+    .fabPhoto:hover{
+      filter:brightness(1.05);
+    }
+
+    .footer{
+      margin-bottom:80px;
+    }
+
+    @media (max-width:480px){
+      .fabPhoto{
+        right:12px;
+        bottom:14px;
+        padding:13px 16px;
+        font-size:.86em;
+      }
+    }
   </style>
 </head>
 <body>
@@ -159,10 +365,12 @@
 
   <nav class="tabs" role="tablist" aria-label="Menü">
     <button class="tab is-active" data-tab="doku" type="button">Dokumentation</button>
+    <button class="tab" data-tab="photo" type="button">Fotodoku</button>
     <button class="tab" data-tab="verlauf" type="button">Verlauf</button>
     <button class="tab" data-tab="app" type="button">App</button>
   </nav>
 
+  <!-- DOKU -->
   <main id="tab-doku" class="pane is-active" role="tabpanel">
     <details class="card card--collapsible" open>
       <summary class="card__title">Stammdaten</summary>
@@ -185,7 +393,7 @@
 
           <label class="field">
             <span class="field__label">Aufschluss / Bohrung</span>
-            <input id="meta-borehole" class="field__input" type="text" placeholder="z. B. BK 01 / BS 03" />
+            <input id="meta-borehole" class="field__input" type="text" placeholder="z. B. BK01" />
           </label>
 
           <label class="field">
@@ -223,9 +431,9 @@
         <button id="btnSave" class="btn btn--ghost" type="button">Speichern</button>
         <button id="btnCsv" class="btn btn--ghost" type="button">GeODin CSV</button>
         <button id="btnJson" class="btn btn--ghost" type="button">JSON</button>
-        <button id="btnPdf" class="btn btn--ghost" type="button">PDF</button>
+        <button id="btnPdf" class="btn btn--ghost" type="button">PDF / Bericht</button>
       </div>
-      <div class="hint">PDF öffnet in neuem Tab. CSV ist für GeODin-Feldzuordnung vorbereitet.</div>
+      <div class="hint">Bericht öffnet in neuem Tab. Dort kann als PDF gespeichert werden.</div>
     </section>
 
     <section class="card">
@@ -234,21 +442,103 @@
     </section>
   </main>
 
+  <!-- FOTODOKU -->
+  <main id="tab-photo" class="pane" role="tabpanel" hidden>
+    <section class="card">
+      <div class="card__title">Fotodoku Kernkiste</div>
+
+      <div class="photoTopBar">
+        <div class="photoTag">Automatik: 2-m-Kernkisten</div>
+        <div class="photoTag">Speicherung: komprimiert + ZIP</div>
+      </div>
+
+      <div class="form-grid">
+        <label class="field">
+          <span class="field__label">Projekt</span>
+          <input id="photo-project" class="field__input" type="text" readonly />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Aufschluss / Bohrung</span>
+          <input id="photo-borehole" class="field__input" type="text" readonly />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Kernende [m]</span>
+          <input id="photo-end-depth" class="field__input" type="number" step="0.01" placeholder="z. B. 31" />
+        </label>
+
+        <div class="field">
+          <span class="field__label">&nbsp;</span>
+          <button id="btnGenerateBoxes" class="btn btn--green" type="button">Kernkisten erzeugen</button>
+        </div>
+      </div>
+
+      <div class="smartHint">
+        Bezeichnung automatisch aus Aufschluss + Tiefenbereich, z. B. <b>BK01_0-2m</b>, <b>BK01_2-4m</b>, letzte Kiste gekürzt, z. B. <b>BK01_30-31m</b>.
+      </div>
+
+      <div id="photoBoxList" class="photoBoxList"></div>
+
+      <div id="photoSelectedBox" class="photoSelected">
+        Noch keine Kernkiste gewählt.
+      </div>
+
+      <div class="choiceBlock">
+        <label class="field">
+          <span class="field__label">Bemerkung Fotodoku</span>
+          <textarea id="photo-note" class="field__textarea" placeholder="z. B. Kernkiste vollständig, Wasserzutritt, Kernverlust, Probe sichtbar …"></textarea>
+        </label>
+      </div>
+
+      <div class="choiceBlock">
+        <label class="field">
+          <span class="field__label">Fotos auswählen / aufnehmen</span>
+          <input id="photo-files" class="field__input" type="file" accept="image/*" capture="environment" multiple />
+        </label>
+      </div>
+
+      <div id="photoPreviewList" class="photoPreviewList"></div>
+
+      <div class="photoActions">
+        <button id="btnPhotoSave" class="btn btn--green" type="button">Fotodoku speichern</button>
+        <button id="btnPhotoClear" class="btn btn--ghost" type="button">Fotos verwerfen</button>
+      </div>
+
+      <div class="hint">
+        Bilder werden vor dem Speichern komprimiert und erst beim Download als ZIP pro Kernkiste exportiert.
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__title">Gespeicherte Fotodokus</div>
+      <div id="photoHistoryList" class="historyList"></div>
+    </section>
+  </main>
+
+  <!-- VERLAUF -->
   <main id="tab-verlauf" class="pane" role="tabpanel" hidden>
     <section class="card">
       <div class="card__title">Gespeicherte Dokumentationen</div>
       <div id="historyList" class="historyList"></div>
       <div class="hint">Neueste oben · lokal gespeichert · offline verfügbar</div>
     </section>
+
+    <section class="card">
+      <div class="card__title">Fotodoku-Verlauf</div>
+      <div id="photoHistoryListMirror" class="historyList"></div>
+      <div class="hint">ZIP-Download pro Kernkiste · gleiche Grundbezeichnung wie die zugehörige Aufnahme</div>
+    </section>
   </main>
 
+  <!-- APP -->
   <main id="tab-app" class="pane" role="tabpanel" hidden>
     <section class="card">
       <div class="card__title">App-Hinweis</div>
       <div class="text">
         <p><b>4 Gruppen pro Schicht:</b> Tiefe & Kerndaten · Bodenbenennung · Zustand & Zusatz · Beschreibung & Notiz</p>
-        <p><b>Schnellmodus:</b> zeigt nur die wichtigsten Baustellenfelder und blendet Zusatzangaben aus.</p>
-        <p><b>Export:</b> GeODin-CSV, JSON und PDF stehen direkt in der App zur Verfügung.</p>
+        <p><b>Fotodoku:</b> Kernkisten werden automatisch in 2-m-Abschnitten erzeugt und mit komprimierten Bildern als ZIP exportiert.</p>
+        <p><b>Export:</b> GeODin-CSV, JSON, Bericht und Fotodoku-ZIP stehen direkt in der App zur Verfügung.</p>
       </div>
     </section>
 
@@ -267,5 +557,6 @@
     <button id="btnInstall" class="btn btn--install" type="button" hidden>⬇ App installieren</button>
   </footer>
 
+  <button id="btnPhotoDock" class="fabPhoto" type="button">Fotodoku</button>
 </body>
 </html>

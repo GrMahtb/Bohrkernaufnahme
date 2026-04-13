@@ -1744,5 +1744,31 @@ window.addEventListener('DOMContentLoaded', () => {
     saveDraftDebounced();
   });
 
-  $('btnSave')?.addEventListener('click', () => {
+   $('btnSave')?.addEventListener('click', () => {
     collectMetaFromUi();
+    saveCurrentToHistory();
+    saveDraftDebounced();
+    alert('Dokumentation im Verlauf gespeichert.');
+  });
+
+  $('btnCsv')?.addEventListener('click', () => {
+    collectMetaFromUi();
+    exportCsv(state);
+  });
+
+  $('btnJson')?.addEventListener('click', () => {
+    collectMetaFromUi();
+    exportJson(state);
+  });
+
+  $('btnPdf')?.addEventListener('click', () => {
+    collectMetaFromUi();
+    openHtmlReport(state);
+  });
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/Bohrkernaufnahme/sw.js?v=90').catch((err) => {
+      console.error('SW registration failed:', err);
+    });
+  }
+});

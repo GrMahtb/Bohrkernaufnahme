@@ -1,5 +1,5 @@
 const BASE = '/Bohrkernaufnahme/';
-const CACHE = 'htb-bohrkern-14688-v90';
+const CACHE = 'htb-bohrkern-14688-v95';
 
 const ASSETS = [
   BASE,
@@ -8,7 +8,9 @@ const ASSETS = [
   BASE + 'app.js',
   BASE + 'manifest.json',
   BASE + 'logo.svg',
-  BASE + 'icon.svg'
+  BASE + 'icon.svg',
+  BASE + 'launchericon-192x192.png',
+  BASE + 'launchericon-512x512.png'
 ];
 
 self.addEventListener('install', (event) => {

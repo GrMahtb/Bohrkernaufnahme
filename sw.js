@@ -1,5 +1,5 @@
 const BASE = '/Bohrkernaufnahme/';
-const CACHE = 'htb-bohrkern-14688-v125';
+const CACHE = 'htb-bohrkern-14688-v130';
 
 const ASSETS = [
   BASE,

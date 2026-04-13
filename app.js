@@ -1,13 +1,13 @@
 'use strict';
 
-console.log('HTB Bohrkernaufnahme v90 loaded');
+console.log('HTB Bohrkernaufnahme v91 loaded');
 
-const STORAGE_DRAFT = 'htb-bohrkern-14688-draft-v90';
-const STORAGE_HISTORY = 'htb-bohrkern-14688-history-v90';
-const STORAGE_PHOTO_META = 'htb-bohrkern-photo-meta-v90';
+const STORAGE_DRAFT = 'htb-bohrkern-14688-draft-v91';
+const STORAGE_HISTORY = 'htb-bohrkern-14688-history-v91';
+const STORAGE_PHOTO_META = 'htb-bohrkern-photo-meta-v91';
 const HISTORY_MAX = 40;
 
-const PHOTO_DB_NAME = 'htb-bohrkern-photo-db-v90';
+const PHOTO_DB_NAME = 'htb-bohrkern-photo-db-v91';
 const PHOTO_DB_STORE = 'files';
 const PHOTO_MAX_EDGE = 1600;
 const PHOTO_QUALITY = 0.78;
@@ -79,8 +79,7 @@ const photoDraft = {
   selectedBox: '',
   boxFrom: null,
   boxTo: null,
-  note: '',
-  queue: []
+  entries: []
 };
 
 function uid() {
@@ -1043,16 +1042,42 @@ function getSuggestedBox(boxes, borehole) {
   return boxes.find(b => !used.has(b.label)) || boxes[boxes.length - 1] || null;
 }
 
+function getDraftEntry(label) {
+  return photoDraft.entries.find(e => e.boxLabel === label);
+}
+
+function ensureDraftEntry(box) {
+  let entry = getDraftEntry(box.label);
+  if (!entry) {
+    entry = {
+      boxLabel: box.label,
+      boxFrom: box.from,
+      boxTo: box.to,
+      note: '',
+      files: []
+    };
+    photoDraft.entries.push(entry);
+  } else {
+    entry.boxFrom = box.from;
+    entry.boxTo = box.to;
+  }
+  return entry;
+}
+
+function getCurrentDraftEntry() {
+  return getDraftEntry(photoDraft.selectedBox);
+}
+
 function setSelectedPhotoBox(box) {
   if (!box) {
     photoDraft.selectedBox = '';
     photoDraft.boxFrom = null;
     photoDraft.boxTo = null;
-  } else {
-    photoDraft.selectedBox = box.label;
-    photoDraft.boxFrom = box.from;
-    photoDraft.boxTo = box.to;
+    return;
   }
+  photoDraft.selectedBox = box.label;
+  photoDraft.boxFrom = box.from;
+  photoDraft.boxTo = box.to;
 }
 
 function renderPhotoSelectedBox() {
@@ -1064,11 +1089,38 @@ function renderPhotoSelectedBox() {
     return;
   }
 
+  const entry = getCurrentDraftEntry();
   el.innerHTML = `
     <b>Ausgewählte Kernkiste:</b> ${h(photoDraft.selectedBox)}<br>
     <b>Tiefenbereich:</b> ${h(compactDepth(photoDraft.boxFrom))} – ${h(compactDepth(photoDraft.boxTo))} m<br>
-    <b>Fotos im aktuellen Paket:</b> ${photoDraft.queue.length}
+    <b>Ungespeicherte Fotos dieser Kiste:</b> ${entry?.files?.length || 0}
   `;
+}
+
+function renderPhotoPreviews() {
+  const host = $('photoPreviewList');
+  if (!host) return;
+
+  const entry = getCurrentDraftEntry();
+  const files = entry?.files || [];
+
+  if (!files.length) {
+    host.innerHTML = `<div class="text"><p>Für die aktuell gewählte Kernkiste sind noch keine neuen Fotos ausgewählt.</p></div>`;
+    return;
+  }
+
+  host.innerHTML = files.map((item, idx) => `
+    <div class="photoPreviewItem">
+      <img src="${item.url}" alt="${h(item.name)}">
+      <div class="photoPreviewMeta">
+        <b>${h(item.name)}</b>
+        <span>${h(formatBytes(item.size))}</span>
+      </div>
+      <div class="photoPreviewActions">
+        <button class="photoMiniDel" type="button" data-photo-remove="${idx}">Entfernen</button>
+      </div>
+    </div>
+  `).join('');
 }
 
 function renderPhotoBoxes() {
@@ -1089,29 +1141,63 @@ function renderPhotoBoxes() {
   if (!boxes.length) {
     host.innerHTML = `<div class="text"><p>Bitte Aufschluss und Kernende eingeben.</p></div>`;
     setSelectedPhotoBox(null);
+    if ($('photo-note') && document.activeElement !== $('photo-note')) $('photo-note').value = '';
     renderPhotoSelectedBox();
+    renderPhotoPreviews();
     return;
   }
 
   const used = getUsedBoxLabels(borehole);
+  const drafted = new Set(photoDraft.entries.filter(e => e.files.length > 0 || e.note).map(e => e.boxLabel));
 
   if (!boxes.find(b => b.label === photoDraft.selectedBox)) {
     setSelectedPhotoBox(getSuggestedBox(boxes, borehole));
   }
 
-  host.innerHTML = boxes.map(box => `
-    <button
-      class="photoBoxBtn ${used.has(box.label) ? 'is-used' : ''} ${photoDraft.selectedBox === box.label ? 'is-active' : ''}"
-      type="button"
-      data-photo-box="${h(box.label)}"
-      data-from="${h(box.from)}"
-      data-to="${h(box.to)}"
-    >
-      ${h(box.label)}${used.has(box.label) ? ' ✓' : ''}
-    </button>
-  `).join('');
+  host.innerHTML = boxes.map(box => {
+    const markers = `${drafted.has(box.label) ? ' •' : ''}${used.has(box.label) ? ' ✓' : ''}`;
+    return `
+      <button
+        class="photoBoxBtn ${used.has(box.label) ? 'is-used' : ''} ${photoDraft.selectedBox === box.label ? 'is-active' : ''}"
+        type="button"
+        data-photo-box="${h(box.label)}"
+        data-from="${h(box.from)}"
+        data-to="${h(box.to)}"
+      >
+        ${h(box.label)}${markers}
+      </button>
+    `;
+  }).join('');
+
+  const noteInput = $('photo-note');
+  const currentEntry = getCurrentDraftEntry();
+  if (noteInput && document.activeElement !== noteInput) {
+    noteInput.value = currentEntry?.note || '';
+  }
 
   renderPhotoSelectedBox();
+  renderPhotoPreviews();
+}
+
+function getCurrentBoxList() {
+  const borehole = String(($('photo-borehole')?.value || state.meta.borehole || '')).trim();
+  const rawEnd = String(photoDraft.endDepth ?? $('photo-end-depth')?.value ?? '').trim().replace(',', '.');
+  const endDepth = rawEnd === '' ? NaN : Number(rawEnd);
+  return generateCoreBoxes(endDepth, borehole);
+}
+
+function autoAdvancePhotoBox() {
+  const boxes = getCurrentBoxList();
+  if (!boxes.length || !photoDraft.selectedBox) {
+    renderPhotoBoxes();
+    return;
+  }
+
+  const idx = boxes.findIndex(b => b.label === photoDraft.selectedBox);
+  if (idx >= 0 && idx < boxes.length - 1) {
+    setSelectedPhotoBox(boxes[idx + 1]);
+  }
+  renderPhotoBoxes();
 }
 
 function syncPhotoPanel(forceDepth = false) {
@@ -1138,51 +1224,29 @@ function syncPhotoPanel(forceDepth = false) {
   }
 
   if (noteInput && document.activeElement !== noteInput) {
-    noteInput.value = photoDraft.note || '';
+    noteInput.value = getCurrentDraftEntry()?.note || '';
   }
 
   renderPhotoBoxes();
-  renderPhotoPreviews();
 }
 
-function clearPhotoQueue() {
-  photoDraft.queue.forEach(item => {
-    try { URL.revokeObjectURL(item.url); } catch {}
+function clearAllDraftPhotoFiles() {
+  photoDraft.entries.forEach(entry => {
+    (entry.files || []).forEach(item => {
+      try { URL.revokeObjectURL(item.url); } catch {}
+    });
   });
-  photoDraft.queue = [];
 }
 
-function clearPhotoDraft(keepBox = true) {
-  clearPhotoQueue();
-  photoDraft.note = '';
-  if (!keepBox) setSelectedPhotoBox(null);
+function clearPhotoDraft(keepSelection = true) {
+  clearAllDraftPhotoFiles();
+  photoDraft.entries = [];
+  if (!keepSelection) {
+    setSelectedPhotoBox(null);
+  }
   if ($('photo-note')) $('photo-note').value = '';
   if ($('photo-files')) $('photo-files').value = '';
-  renderPhotoPreviews();
-  renderPhotoSelectedBox();
-}
-
-function renderPhotoPreviews() {
-  const host = $('photoPreviewList');
-  if (!host) return;
-
-  if (!photoDraft.queue.length) {
-    host.innerHTML = `<div class="text"><p>Noch keine Fotos ausgewählt.</p></div>`;
-    return;
-  }
-
-  host.innerHTML = photoDraft.queue.map((item, idx) => `
-    <div class="photoPreviewItem">
-      <img src="${item.url}" alt="${item.name}">
-      <div class="photoPreviewMeta">
-        <b>${h(item.name)}</b>
-        <span>${h(formatBytes(item.size))}</span>
-      </div>
-      <div class="photoPreviewActions">
-        <button class="photoMiniDel" type="button" data-photo-remove="${idx}">Entfernen</button>
-      </div>
-    </div>
-  `).join('');
+  renderPhotoBoxes();
 }
 
 function loadImage(file) {
@@ -1235,14 +1299,22 @@ async function handlePhotoFiles(files) {
     return;
   }
 
-  const startOrder = photoDraft.queue.length + 1;
+  const currentBox = {
+    label: photoDraft.selectedBox,
+    from: photoDraft.boxFrom,
+    to: photoDraft.boxTo
+  };
+
+  const entry = ensureDraftEntry(currentBox);
+  const startOrder = entry.files.length + 1;
+
   for (let i = 0; i < files.length; i++) {
-    const item = await compressImageFile(files[i], photoDraft.selectedBox, startOrder + i);
-    photoDraft.queue.push(item);
+    const item = await compressImageFile(files[i], currentBox.label, startOrder + i);
+    entry.files.push(item);
   }
 
-  renderPhotoPreviews();
-  renderPhotoSelectedBox();
+  renderPhotoBoxes();
+  autoAdvancePhotoBox();
 }
 
 async function savePhotoDoc() {
@@ -1257,53 +1329,58 @@ async function savePhotoDoc() {
   if ($('meta-project')) $('meta-project').value = project;
   if ($('meta-borehole')) $('meta-borehole').value = borehole;
 
+  const entriesToSave = photoDraft.entries.filter(e => Array.isArray(e.files) && e.files.length);
+
   if (!borehole) {
     alert('Bitte zuerst eine Aufschlussbezeichnung eingeben.');
     return;
   }
-  if (!photoDraft.selectedBox) {
-    alert('Bitte eine Kernkiste wählen.');
-    return;
-  }
-  if (!photoDraft.queue.length) {
-    alert('Bitte mindestens ein Foto auswählen.');
+  if (!entriesToSave.length) {
+    alert('Es sind keine neuen Fotos zum Speichern vorhanden.');
     return;
   }
 
   let docs = readPhotoMeta();
-  const existing = docs.find(d => d.borehole === borehole && d.boxLabel === photoDraft.selectedBox);
 
-  if (existing) {
-    const overwrite = confirm('Für diese Kernkiste gibt es bereits eine Fotodoku. Überschreiben?');
-    if (!overwrite) return;
-    await deletePhotoFiles(existing.id);
-    docs = docs.filter(d => d.id !== existing.id);
+  for (const draftEntry of entriesToSave) {
+    const existing = docs.find(d => d.borehole === borehole && d.boxLabel === draftEntry.boxLabel);
+
+    if (existing) {
+      await putPhotoFiles(existing.id, draftEntry.files);
+      existing.fileCount = Number(existing.fileCount || 0) + draftEntry.files.length;
+      if (draftEntry.note) {
+        existing.note = existing.note
+          ? `${existing.note} | ${draftEntry.note}`
+          : draftEntry.note;
+      }
+      existing.updatedAt = Date.now();
+    } else {
+      const docId = uid();
+      const title = `${project || '—'} · ${borehole || '—'}`;
+      const newEntry = {
+        id: docId,
+        title,
+        project,
+        borehole,
+        boxLabel: draftEntry.boxLabel,
+        boxFrom: draftEntry.boxFrom,
+        boxTo: draftEntry.boxTo,
+        createdAt: Date.now(),
+        note: draftEntry.note || '',
+        fileCount: draftEntry.files.length
+      };
+
+      await putPhotoFiles(docId, draftEntry.files);
+      docs.unshift(newEntry);
+    }
   }
 
-  const docId = uid();
-  const title = `${project || '—'} · ${borehole || '—'}`;
-  const entry = {
-    id: docId,
-    title,
-    project,
-    borehole,
-    boxLabel: photoDraft.selectedBox,
-    boxFrom: photoDraft.boxFrom,
-    boxTo: photoDraft.boxTo,
-    createdAt: Date.now(),
-    note: photoDraft.note || '',
-    fileCount: photoDraft.queue.length
-  };
-
-  await putPhotoFiles(docId, photoDraft.queue);
-  docs.unshift(entry);
   writePhotoMeta(docs);
-
-  clearPhotoDraft(false);
+  clearPhotoDraft(true);
   renderPhotoHistoryLists();
   renderPhotoBoxes();
   saveDraftDebounced();
-  alert(`Fotodoku gespeichert: ${entry.boxLabel}`);
+  alert('Fotodoku gespeichert.');
 }
 
 async function downloadPhotoZip(docId) {
@@ -1333,6 +1410,7 @@ async function downloadPhotoZip(docId) {
     boxFrom: entry.boxFrom,
     boxTo: entry.boxTo,
     createdAt: new Date(entry.createdAt).toISOString(),
+    updatedAt: entry.updatedAt ? new Date(entry.updatedAt).toISOString() : null,
     note: entry.note,
     fileCount: entry.fileCount
   }, null, 2));
@@ -1371,7 +1449,7 @@ function renderPhotoHistoryInto(host) {
     <div class="photoHistoryItem">
       <div class="photoHistoryTop">
         <span>${h(entry.title)}</span>
-        <span style="color:var(--muted);font-size:.82em">${h(new Date(entry.createdAt).toLocaleString('de-DE'))}</span>
+        <span style="color:var(--muted);font-size:.82em">${h(new Date(entry.updatedAt || entry.createdAt).toLocaleString('de-DE'))}</span>
       </div>
       <div class="photoHistorySub">
         Kernkiste: <b>${h(entry.boxLabel)}</b> ·
@@ -1395,6 +1473,14 @@ function renderPhotoHistoryLists() {
 /* =========================
    EVENTS
 ========================= */
+function syncPhotoDockVisibility() {
+  const btn = $('btnPhotoDock');
+  if (!btn) return;
+  const isPhotoOpen = $('tab-photo')?.classList.contains('is-active');
+  btn.hidden = !!isPhotoOpen;
+  btn.classList.toggle('is-hidden', !!isPhotoOpen);
+}
+
 function initTabs() {
   document.querySelectorAll('.tab').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1414,6 +1500,8 @@ function initTabs() {
         syncPhotoPanel();
         renderPhotoHistoryLists();
       }
+
+      syncPhotoDockVisibility();
     });
   });
 }
@@ -1569,6 +1657,10 @@ function hookPhotoEvents() {
     document.querySelector('.tab[data-tab="photo"]')?.click();
   });
 
+  $('btnTakePhoto')?.addEventListener('click', () => {
+    $('photo-files')?.click();
+  });
+
   $('photo-project')?.addEventListener('input', () => {
     state.meta.project = $('photo-project')?.value || '';
     if ($('meta-project')) $('meta-project').value = state.meta.project;
@@ -1597,7 +1689,14 @@ function hookPhotoEvents() {
   });
 
   $('photo-note')?.addEventListener('input', () => {
-    photoDraft.note = $('photo-note')?.value || '';
+    if (!photoDraft.selectedBox) return;
+    const entry = ensureDraftEntry({
+      label: photoDraft.selectedBox,
+      from: photoDraft.boxFrom,
+      to: photoDraft.boxTo
+    });
+    entry.note = $('photo-note')?.value || '';
+    renderPhotoBoxes();
   });
 
   $('photoBoxList')?.addEventListener('click', (e) => {
@@ -1627,12 +1726,12 @@ function hookPhotoEvents() {
     const btn = e.target.closest('[data-photo-remove]');
     if (!btn) return;
     const idx = Number(btn.dataset.photoRemove);
-    const item = photoDraft.queue[idx];
+    const entry = getCurrentDraftEntry();
+    const item = entry?.files?.[idx];
     if (!item) return;
     try { URL.revokeObjectURL(item.url); } catch {}
-    photoDraft.queue.splice(idx, 1);
-    renderPhotoPreviews();
-    renderPhotoSelectedBox();
+    entry.files.splice(idx, 1);
+    renderPhotoBoxes();
   });
 
   $('btnPhotoClear')?.addEventListener('click', () => {
@@ -1719,6 +1818,7 @@ window.addEventListener('DOMContentLoaded', () => {
   renderHistoryList();
   renderPhotoHistoryLists();
   syncPhotoPanel(true);
+  syncPhotoDockVisibility();
 
   hookMetaEvents();
   hookLayerEvents();
@@ -1744,7 +1844,7 @@ window.addEventListener('DOMContentLoaded', () => {
     saveDraftDebounced();
   });
 
-   $('btnSave')?.addEventListener('click', () => {
+  $('btnSave')?.addEventListener('click', () => {
     collectMetaFromUi();
     saveCurrentToHistory();
     saveDraftDebounced();

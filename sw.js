@@ -1,29 +1,26 @@
-const BASE = '/Bohrkernaufnahme/';
-const CACHE = 'htb-bohrkern-14688-v131';
-
+const CACHE_NAME = 'bohrkern-v132';
 const ASSETS = [
-  BASE,
-  BASE + 'index.html',
-  BASE + 'styles.css',
-  BASE + 'app.js',
-  BASE + 'manifest.json',
-  BASE + 'logo.svg',
-  BASE + 'icon.svg',
-  BASE + 'launchericon-192x192.png',
-  BASE + 'launchericon-512x512.png'
+  './',
+  './index.html',
+  './css/style.css',
+  './js/app.js',
+  './assets/icon.svg',
+  './manifest.webmanifest',
+  './assets/icons/icon-192.png',
+  './assets/icons/icon-512.png',
+  './assets/icons/maskable-512.png',
+  './assets/icons/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(ASSETS))
-  );
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+    caches.keys().then(keys =>
+      Promise.all(keys.map(k => (k !== CACHE_NAME ? caches.delete(k) : null)))
     )
   );
   self.clients.claim();
@@ -31,18 +28,6 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    fetch(event.request)
-      .then((res) => {
-        const clone = res.clone();
-        caches.open(CACHE).then((cache) => cache.put(event.request, clone));
-        return res;
-      })
-      .catch(async () => {
-        const cached = await caches.match(event.request);
-        if (cached) return cached;
-        if (event.request.mode === 'navigate') {
-          return caches.match(BASE + 'index.html');
-        }
-      })
+    caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
 });

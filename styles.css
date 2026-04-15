@@ -50,19 +50,20 @@ header {
   padding: 10px 14px;
 }
 
+/* Logo: landscape SVG – Höhe fix, Breite automatisch */
 .logo-container {
-  width: 44px;
   height: 44px;
+  width: auto;
   flex-shrink: 0;
-  border-radius: 10px;
-  overflow: hidden;
   display: flex;
   align-items: center;
-  justify-content: center;
 }
 
-.logo-container svg {
+.logo-container img {
+  height: 100%;
+  width: auto;
   display: block;
+  max-width: 72px;
 }
 
 .header-text {
@@ -133,7 +134,7 @@ header {
 }
 
 /* ══════════════════════════════════
-   PANES
+   PANES  ← BUGFIX: display:none als Standard
 ══════════════════════════════════ */
 .pane {
   display: none;
@@ -855,7 +856,7 @@ header {
 }
 
 /* ══════════════════════════════════
-   SAFE AREA (iOS Notch etc.)
+   SAFE AREA (iOS Notch)
 ══════════════════════════════════ */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .actions-bar {
@@ -871,6 +872,14 @@ header {
    MOBILE
 ══════════════════════════════════ */
 @media (max-width: 460px) {
+  .logo-container img {
+    max-width: 58px;
+  }
+
+  .header-text h1 {
+    font-size: 0.9rem;
+  }
+
   .actions-bar {
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: auto auto;

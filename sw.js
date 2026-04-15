@@ -6,7 +6,11 @@ const ASSETS = [
   './index.html',
   './styles.css',
   './app.js',
-  './manifest.json'
+  './manifest.json',
+  './logo.svg',
+  './icon.svg',
+  './launchericon-192x192.png',
+  './launchericon-512x512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -26,14 +30,13 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Nur GET und same-origin cachen
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
 
-  // CDN (JSZip) immer direkt fetchen, nicht cachen
+  // CDN-Requests (JSZip etc.) immer direkt fetchen
   if (url.origin !== self.location.origin) {
-    event.respondWith(fetch(event.request));
+    event.respondWith(fetch(event.request).catch(() => new Response('', { status: 503 })));
     return;
   }
 

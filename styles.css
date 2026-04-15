@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════
-   HTB BOHRKERNAUFNAHME – CSS
-   Corporate Design: Schwarz/Gelb – Dark Mode
+   BOHRKERNAUFNAHME – CSS
+   Dark Mode, Root-Version
 ═══════════════════════════════════════════════ */
 
 :root {
@@ -37,7 +37,7 @@ body {
   min-height: 100%;
 }
 
-/* ── HEADER ──────────────────────────────────── */
+/* HEADER */
 header {
   position: sticky;
   top: 0;
@@ -92,7 +92,7 @@ header {
   flex-shrink: 0;
 }
 
-/* ── TABS ────────────────────────────────────── */
+/* TABS */
 .tabs {
   position: sticky;
   top: var(--header-h);
@@ -120,14 +120,16 @@ header {
   min-width: max-content;
 }
 
-.tab:hover { color: var(--text); }
+.tab:hover {
+  color: var(--text);
+}
 
 .tab.is-active {
   color: var(--primary);
   border-bottom-color: var(--primary);
 }
 
-/* ── PANES ───────────────────────────────────── */
+/* PANES */
 .pane {
   display: none;
   padding: 16px;
@@ -140,7 +142,7 @@ header {
   display: block;
 }
 
-/* ── SECTION ACCORDION ───────────────────────── */
+/* SECTION ACC */
 .sectionAcc {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -188,7 +190,7 @@ header {
   padding: 16px;
 }
 
-/* ── SECTION ─────────────────────────────────── */
+/* GENERAL SECTIONS */
 .section {
   margin-bottom: 24px;
 }
@@ -204,7 +206,7 @@ header {
   border-bottom: 1px solid var(--border);
 }
 
-/* ── FORM ────────────────────────────────────── */
+/* FORM */
 .form-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -212,7 +214,9 @@ header {
 }
 
 @media (min-width: 520px) {
-  .form-grid { grid-template-columns: 1fr 1fr; }
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .field {
@@ -233,7 +237,7 @@ header {
   font-weight: 600;
 }
 
-/* BUGFIX: font-size 16px verhindert iOS-Zoom beim Fokus */
+/* BUGFIX: 16px verhindert iOS-Zoom beim Fokus */
 .field__input,
 .field__select,
 .field__textarea {
@@ -274,12 +278,12 @@ header {
   padding-right: 32px;
 }
 
-/* ── QUICK HINT ──────────────────────────────── */
+/* QUICK HINT */
 .quickModeHint {
   margin-bottom: 16px;
 }
 
-/* ── LAYER CARD ──────────────────────────────── */
+/* LAYER CARD */
 .layerCard {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -303,10 +307,17 @@ header {
 }
 
 .layerCard > summary::marker,
-.layerCard > summary::-webkit-details-marker { display: none; }
+.layerCard > summary::-webkit-details-marker {
+  display: none;
+}
 
-.layerCard[open] > summary { border-bottom-color: var(--border); }
-.layerCard > summary:hover { background: var(--surface-2); }
+.layerCard[open] > summary {
+  border-bottom-color: var(--border);
+}
+
+.layerCard > summary:hover {
+  background: var(--surface-2);
+}
 
 .layerCard__title {
   display: flex;
@@ -343,9 +354,11 @@ header {
   width: max-content;
 }
 
-.layerBody { padding: 16px; }
+.layerBody {
+  padding: 16px;
+}
 
-/* ── SUB ACCORDION ───────────────────────────── */
+/* SUB ACC */
 .subAcc {
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -363,10 +376,17 @@ header {
 }
 
 .subAcc > summary::marker,
-.subAcc > summary::-webkit-details-marker { display: none; }
+.subAcc > summary::-webkit-details-marker {
+  display: none;
+}
 
-.subAcc[open] > summary { border-bottom-color: var(--border); }
-.subAcc > summary:hover { background: #383838; }
+.subAcc[open] > summary {
+  border-bottom-color: var(--border);
+}
+
+.subAcc > summary:hover {
+  background: #383838;
+}
 
 .subAcc__head {
   display: flex;
@@ -390,10 +410,14 @@ header {
   max-width: 68vw;
 }
 
-.subAcc__body { padding: 14px; }
+.subAcc__body {
+  padding: 14px;
+}
 
-/* ── CHIPS ───────────────────────────────────── */
-.choiceBlock { margin-bottom: 14px; }
+/* CHIPS */
+.choiceBlock {
+  margin-bottom: 14px;
+}
 
 .choiceLabel {
   font-size: 0.8rem;
@@ -424,7 +448,10 @@ header {
   user-select: none;
 }
 
-.chip:hover { border-color: var(--primary-dark); background: #383838; }
+.chip:hover {
+  border-color: var(--primary-dark);
+  background: #383838;
+}
 
 .chip.is-active {
   background: var(--primary);
@@ -433,10 +460,15 @@ header {
   font-weight: 700;
 }
 
-.chip--soft { opacity: 0.85; }
-.chip--soft.is-active { opacity: 1; }
+.chip--soft {
+  opacity: 0.85;
+}
 
-/* ── READONLY ────────────────────────────────── */
+.chip--soft.is-active {
+  opacity: 1;
+}
+
+/* PREVIEW */
 .readonly {
   background: #000;
   border-left: 4px solid var(--primary);
@@ -449,7 +481,7 @@ header {
   min-height: 40px;
 }
 
-/* ── HINTS ───────────────────────────────────── */
+/* HINTS */
 .smartHint {
   background: var(--surface-2);
   border-left: 3px solid var(--border);
@@ -477,7 +509,7 @@ header {
   margin-bottom: 14px;
 }
 
-/* ── LAYER ACTIONS ───────────────────────────── */
+/* ACTIONS */
 .layerActions {
   display: flex;
   gap: 10px;
@@ -493,7 +525,7 @@ header {
   gap: 10px;
 }
 
-/* ── BUTTONS ─────────────────────────────────── */
+/* BUTTONS */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -514,18 +546,49 @@ header {
   width: 100%;
 }
 
-.btn--sm { padding: 7px 11px; font-size: 0.8rem; width: auto; }
+.btn--sm {
+  padding: 7px 11px;
+  font-size: 0.8rem;
+  width: auto;
+}
 
-.btn--ghost { background: var(--surface-2); color: var(--text); border-color: var(--border); }
-.btn--ghost:hover { background: var(--border); }
+.btn--ghost {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--border);
+}
 
-.btn--primary { background: var(--primary); color: #000; border-color: var(--primary); }
-.btn--primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+.btn--ghost:hover {
+  background: var(--border);
+}
 
-.btn--accent { background: var(--primary); color: #000; border-color: var(--primary); }
+.btn--primary {
+  background: var(--primary);
+  color: #000;
+  border-color: var(--primary);
+}
 
-.btn--photo { background: var(--photo-green); color: #fff; border-color: var(--photo-green); }
-.btn--photo:hover { background: var(--photo-green-dark); border-color: var(--photo-green-dark); }
+.btn--primary:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.btn--accent {
+  background: var(--primary);
+  color: #000;
+  border-color: var(--primary);
+}
+
+.btn--photo {
+  background: var(--photo-green);
+  color: #fff;
+  border-color: var(--photo-green);
+}
+
+.btn--photo:hover {
+  background: var(--photo-green-dark);
+  border-color: var(--photo-green-dark);
+}
 
 .miniBtn {
   appearance: none;
@@ -541,16 +604,33 @@ header {
   transition: background 0.2s, border-color 0.2s;
 }
 
-.miniBtn:hover { border-color: var(--primary); background: var(--border); }
+.miniBtn:hover {
+  border-color: var(--primary);
+  background: var(--border);
+}
 
-.miniBtn[data-act="del"] { color: var(--danger); border-color: var(--danger); }
-.miniBtn[data-act="del"]:hover { background: rgba(255,82,82,0.12); }
+.miniBtn[data-act="del"] {
+  color: var(--danger);
+  border-color: var(--danger);
+}
 
-/* ── TEXT ────────────────────────────────────── */
-.text { color: var(--muted); font-size: 0.9rem; line-height: 1.6; padding: 8px 0; }
-.text p { margin: 0 0 8px; }
+.miniBtn[data-act="del"]:hover {
+  background: rgba(255, 82, 82, 0.12);
+}
 
-/* ── HISTORY ─────────────────────────────────── */
+/* TEXT */
+.text {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  padding: 8px 0;
+}
+
+.text p {
+  margin: 0 0 8px;
+}
+
+/* HISTORY */
 .historyItem,
 .photoHistoryItem {
   background: var(--surface);
@@ -560,12 +640,16 @@ header {
   margin-bottom: 10px;
 }
 
-.photoHistoryItem {
+.historyItem {
   cursor: pointer;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s;
 }
 
-.photoHistoryItem:hover {
+.historyItem:hover {
+  border-color: var(--primary-dark);
+}
+
+.historyItem.is-selected {
   border-color: var(--primary);
 }
 
@@ -589,16 +673,30 @@ header {
   line-height: 1.5;
 }
 
-.historyBtns,
-.photoHistoryBtns {
-  display: flex;
+.historyBtns {
+  display: none;
   flex-wrap: wrap;
   gap: 8px;
-  justify-content: space-between;
+}
+
+.historyItem.is-selected .historyBtns {
+  display: flex;
+}
+
+.photoHistoryItem {
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.photoHistoryItem:hover {
+  border-color: var(--primary);
 }
 
 .photoHistoryBtns {
-  justify-content: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 
 .historyBtns button,
@@ -625,10 +723,13 @@ header {
 .photoHistoryBtns button[data-phact="del"] {
   color: var(--danger);
   border-color: var(--danger);
+}
+
+.photoHistoryBtns button[data-phact="del"] {
   margin-left: auto;
 }
 
-/* ── FOTO TAB ────────────────────────────────── */
+/* PHOTO TAB */
 .photo-btn-row {
   display: flex;
   flex-wrap: wrap;
@@ -656,7 +757,9 @@ header {
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.photoBoxBtn:hover { border-color: var(--primary-dark); }
+.photoBoxBtn:hover {
+  border-color: var(--primary-dark);
+}
 
 .photoBoxBtn.is-active {
   background: var(--primary);
@@ -665,10 +768,305 @@ header {
   font-weight: 700;
 }
 
-.photoBoxBtn.is-used { opacity: 0.55; }
+.photoBoxBtn.is-used {
+  opacity: 0.55;
+}
 
 .photoSelectedBox {
   font-size: 0.88rem;
   color: var(--muted);
   background: var(--surface-2);
   border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 12px 0;
+  line-height: 1.6;
+}
+
+.photoPreviewItem {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 8px;
+}
+
+.photoPreviewItem img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.photoPreviewMeta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.85rem;
+  overflow: hidden;
+}
+
+.photoPreviewMeta b {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photoPreviewMeta span {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.photoPreviewActions {
+  flex-shrink: 0;
+}
+
+.photoMiniDel {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+
+.photoMiniDel:hover {
+  background: rgba(255, 82, 82, 0.12);
+}
+
+/* Gespeicherte Fotos aktuell gewählte Kernkiste */
+.photoExistingWrap {
+  margin-top: 16px;
+}
+
+.photoExistingGrid,
+.photo-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.photoExistingItem,
+.photo-modal__item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.photoExistingItem img,
+.photo-modal__item img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 6px;
+  display: block;
+}
+
+.photoExistingItem span,
+.photo-modal__item span {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Floating Foto Button */
+.photo-float-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 24px;
+  z-index: 230;
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  background: var(--photo-green);
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  padding: 14px 18px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.photo-float-btn:hover {
+  background: var(--photo-green-dark);
+}
+
+.photo-float-btn.is-hidden {
+  display: none;
+}
+
+/* PHOTO MODAL */
+.photo-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+}
+
+.photo-modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.photo-modal__content {
+  position: relative;
+  z-index: 1;
+  width: min(920px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  margin: 12px auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.photo-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.photo-modal__title {
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.photo-modal__close {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+/* LIGHTBOX */
+.photo-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 320;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-lightbox__img {
+  max-width: calc(100vw - 96px);
+  max-height: calc(100vh - 140px);
+  object-fit: contain;
+  display: block;
+}
+
+.photo-lightbox__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  appearance: none;
+  border: 0;
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  border-radius: 999px;
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.photo-lightbox__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  appearance: none;
+  border: 0;
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  border-radius: 999px;
+  width: 44px;
+  height: 44px;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.photo-lightbox__prev {
+  left: 12px;
+}
+
+.photo-lightbox__next {
+  right: 12px;
+}
+
+.photo-lightbox__counter {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  font-size: 0.9rem;
+  background: rgba(255,255,255,0.12);
+  padding: 8px 12px;
+  border-radius: 999px;
+}
+
+/* MOBILE */
+@media (max-width: 640px) {
+  .logo-container img {
+    height: 38px;
+    max-width: 66px;
+  }
+
+  .header-text h1 {
+    font-size: 0.92rem;
+  }
+
+  .historyBtns,
+  .photoHistoryBtns,
+  .photo-btn-row,
+  .layerActions {
+    flex-direction: column;
+  }
+
+  .photoHistoryBtns button[data-phact="del"] {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 460px) {
+  header {
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .photo-float-btn {
+    right: 12px;
+    bottom: 16px;
+    padding: 13px 16px;
+  }
+
+  .photo-lightbox__img {
+    max-width: calc(100vw - 40px);
+    max-height: calc(100vh - 160px);
+  }
+}

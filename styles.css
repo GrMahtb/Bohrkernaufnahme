@@ -14,33 +14,34 @@
   --danger:       #ff5252;
   --border:       #333333;
   --radius:       8px;
-  --header-h:     72px;
-  --tabs-h:       48px;
+  --header-h:     76px;
   --bar-h:        68px;
+  --photo-green:  #1f9d4c;
+  --photo-green-dark: #16763a;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-               Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   min-height: 100%;
 }
 
-/* ══════════════════════════════════
-   HEADER
-══════════════════════════════════ */
+/* HEADER */
 header {
   position: sticky;
   top: 0;
-  z-index: 200;
+  z-index: 220;
   height: var(--header-h);
   background: var(--surface);
   border-bottom: 2px solid var(--primary);
@@ -50,20 +51,17 @@ header {
   padding: 10px 14px;
 }
 
-/* Logo: landscape SVG – Höhe fix, Breite automatisch */
 .logo-container {
-  height: 44px;
-  width: auto;
   flex-shrink: 0;
   display: flex;
   align-items: center;
 }
 
 .logo-container img {
-  height: 100%;
+  height: 44px;
   width: auto;
   display: block;
-  max-width: 72px;
+  max-width: 78px;
 }
 
 .header-text {
@@ -73,7 +71,7 @@ header {
 
 .header-text h1 {
   margin: 0;
-  font-size: 1.0rem;
+  font-size: 1rem;
   color: var(--primary);
   font-weight: 800;
   letter-spacing: 0.02em;
@@ -94,16 +92,14 @@ header {
   flex-shrink: 0;
 }
 
-/* ══════════════════════════════════
-   TABS
-══════════════════════════════════ */
+/* TABS */
 .tabs {
+  position: sticky;
+  top: var(--header-h);
+  z-index: 210;
   display: flex;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: var(--header-h);
-  z-index: 190;
   overflow-x: auto;
 }
 
@@ -133,14 +129,12 @@ header {
   border-bottom-color: var(--primary);
 }
 
-/* ══════════════════════════════════
-   PANES  ← BUGFIX: display:none als Standard
-══════════════════════════════════ */
+/* PANES */
 .pane {
   display: none;
   padding: 16px;
-  padding-bottom: calc(var(--bar-h) + 24px);
-  max-width: 800px;
+  padding-bottom: calc(var(--bar-h) + 28px);
+  max-width: 900px;
   margin: 0 auto;
 }
 
@@ -148,9 +142,55 @@ header {
   display: block;
 }
 
-/* ══════════════════════════════════
-   SECTIONS
-══════════════════════════════════ */
+/* SECTION ACCORDION */
+.sectionAcc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.sectionAcc > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  background: var(--surface);
+  user-select: none;
+  border-bottom: 1px solid transparent;
+}
+
+.sectionAcc > summary::marker,
+.sectionAcc > summary::-webkit-details-marker {
+  display: none;
+}
+
+.sectionAcc[open] > summary {
+  border-bottom-color: var(--border);
+}
+
+.sectionAcc__head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sectionAcc__title {
+  font-weight: 800;
+  color: var(--primary);
+  font-size: 0.94rem;
+}
+
+.sectionAcc__meta {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.sectionAcc__body {
+  padding: 16px;
+}
+
+/* SECTION */
 .section {
   margin-bottom: 24px;
 }
@@ -166,9 +206,7 @@ header {
   border-bottom: 1px solid var(--border);
 }
 
-/* ══════════════════════════════════
-   FORM GRID & FIELDS
-══════════════════════════════════ */
+/* FORM */
 .form-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -239,16 +277,12 @@ header {
   padding-right: 32px;
 }
 
-/* ══════════════════════════════════
-   QUICK MODE HINT
-══════════════════════════════════ */
+/* QUICK HINT */
 .quickModeHint {
   margin-bottom: 16px;
 }
 
-/* ══════════════════════════════════
-   LAYER CARDS
-══════════════════════════════════ */
+/* LAYER CARD */
 .layerCard {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -271,17 +305,17 @@ header {
   transition: background 0.15s;
 }
 
+.layerCard > summary::marker,
+.layerCard > summary::-webkit-details-marker {
+  display: none;
+}
+
 .layerCard[open] > summary {
   border-bottom-color: var(--border);
 }
 
 .layerCard > summary:hover {
   background: var(--surface-2);
-}
-
-.layerCard > summary::marker,
-.layerCard > summary::-webkit-details-marker {
-  display: none;
 }
 
 .layerCard__title {
@@ -304,7 +338,7 @@ header {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 55vw;
+  max-width: 65vw;
 }
 
 .quickPill {
@@ -323,9 +357,7 @@ header {
   padding: 16px;
 }
 
-/* ══════════════════════════════════
-   SUB-ACCORDIONS
-══════════════════════════════════ */
+/* SUB ACC */
 .subAcc {
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -337,12 +369,14 @@ header {
   padding: 12px 14px;
   cursor: pointer;
   list-style: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   background: var(--surface-2);
   user-select: none;
   border-bottom: 1px solid transparent;
+}
+
+.subAcc > summary::marker,
+.subAcc > summary::-webkit-details-marker {
+  display: none;
 }
 
 .subAcc[open] > summary {
@@ -353,17 +387,11 @@ header {
   background: #383838;
 }
 
-.subAcc > summary::marker,
-.subAcc > summary::-webkit-details-marker {
-  display: none;
-}
-
 .subAcc__head {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
-  width: 100%;
 }
 
 .subAcc__title {
@@ -378,16 +406,14 @@ header {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 60vw;
+  max-width: 68vw;
 }
 
 .subAcc__body {
   padding: 14px;
 }
 
-/* ══════════════════════════════════
-   CHIPS
-══════════════════════════════════ */
+/* CHIPS */
 .choiceBlock {
   margin-bottom: 14px;
 }
@@ -428,37 +454,33 @@ header {
 
 .chip.is-active {
   background: var(--primary);
-  color: #000000;
+  color: #000;
   border-color: var(--primary);
   font-weight: 700;
 }
 
 .chip--soft {
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .chip--soft.is-active {
   opacity: 1;
 }
 
-/* ══════════════════════════════════
-   READONLY / PREVIEW
-══════════════════════════════════ */
+/* READONLY */
 .readonly {
-  background: #000000;
+  background: #000;
   border-left: 4px solid var(--primary);
   padding: 10px 14px;
   border-radius: 0 4px 4px 0;
   font-size: 0.9rem;
-  color: #cccccc;
+  color: #ccc;
   line-height: 1.6;
   word-break: break-word;
   min-height: 40px;
 }
 
-/* ══════════════════════════════════
-   SMART HINTS
-══════════════════════════════════ */
+/* HINTS */
 .smartHint {
   background: var(--surface-2);
   border-left: 3px solid var(--border);
@@ -475,9 +497,6 @@ header {
   margin: 16px 0;
 }
 
-/* ══════════════════════════════════
-   LAYER QUICK NOTE
-══════════════════════════════════ */
 .layerQuickNote {
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -489,9 +508,7 @@ header {
   margin-bottom: 14px;
 }
 
-/* ══════════════════════════════════
-   LAYER ACTIONS
-══════════════════════════════════ */
+/* ACTIONS */
 .layerActions {
   display: flex;
   gap: 10px;
@@ -504,9 +521,6 @@ header {
   margin: 16px 0 32px;
 }
 
-/* ══════════════════════════════════
-   BUTTONS
-══════════════════════════════════ */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -545,7 +559,7 @@ header {
 
 .btn--primary {
   background: var(--primary);
-  color: #000000;
+  color: #000;
   border-color: var(--primary);
 }
 
@@ -558,6 +572,17 @@ header {
   background: var(--primary);
   color: #000;
   border-color: var(--primary);
+}
+
+.btn--photo {
+  background: var(--photo-green);
+  color: #fff;
+  border-color: var(--photo-green);
+}
+
+.btn--photo:hover {
+  background: var(--photo-green-dark);
+  border-color: var(--photo-green-dark);
 }
 
 .miniBtn {
@@ -579,18 +604,14 @@ header {
   background: var(--border);
 }
 
-.miniBtn[data-act="del"] {
+.miniBtn[data-act="del"],
+.historyBtns button[data-hact="del"],
+.photoHistoryBtns button[data-phact="del"] {
   color: var(--danger);
   border-color: var(--danger);
 }
 
-.miniBtn[data-act="del"]:hover {
-  background: rgba(255, 82, 82, 0.12);
-}
-
-/* ══════════════════════════════════
-   TEXT / LEERE STATES
-══════════════════════════════════ */
+/* TEXT */
 .text {
   color: var(--muted);
   font-size: 0.9rem;
@@ -602,10 +623,9 @@ header {
   margin: 0 0 8px;
 }
 
-/* ══════════════════════════════════
-   HISTORY ITEMS
-══════════════════════════════════ */
-.historyItem {
+/* HISTORY */
+.historyItem,
+.photoHistoryItem {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -613,7 +633,8 @@ header {
   margin-bottom: 10px;
 }
 
-.historyTop {
+.historyTop,
+.photoHistoryTop {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
@@ -624,20 +645,23 @@ header {
   margin-bottom: 4px;
 }
 
-.historySub {
+.historySub,
+.photoHistorySub {
   font-size: 0.82rem;
   color: var(--muted);
   margin-bottom: 10px;
   line-height: 1.5;
 }
 
-.historyBtns {
+.historyBtns,
+.photoHistoryBtns {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.historyBtns button {
+.historyBtns button,
+.photoHistoryBtns button {
   appearance: none;
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -651,18 +675,12 @@ header {
   transition: background 0.2s, border-color 0.2s;
 }
 
-.historyBtns button:hover {
+.historyBtns button:hover,
+.photoHistoryBtns button:hover {
   border-color: var(--primary);
 }
 
-.historyBtns button[data-hact="del"] {
-  color: var(--danger);
-  border-color: var(--danger);
-}
-
-/* ══════════════════════════════════
-   FOTO DOC
-══════════════════════════════════ */
+/* PHOTO */
 .photo-btn-row {
   display: flex;
   flex-wrap: wrap;
@@ -672,7 +690,7 @@ header {
 
 .photo-btn-row .btn {
   flex: 1;
-  min-width: 120px;
+  min-width: 140px;
 }
 
 .photoBoxBtn {
@@ -778,64 +796,33 @@ header {
   background: rgba(255, 82, 82, 0.12);
 }
 
-.photoHistoryItem {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  margin-bottom: 10px;
-}
-
-.photoHistoryTop {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  flex-wrap: wrap;
-  margin-bottom: 4px;
-}
-
-.photoHistorySub {
-  font-size: 0.82rem;
-  color: var(--muted);
-  margin-bottom: 10px;
-  line-height: 1.5;
-}
-
-.photoHistoryBtns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.photoHistoryBtns button {
+/* FLOATING PHOTO BUTTON */
+.photo-float-btn {
+  position: fixed;
+  right: 16px;
+  bottom: calc(var(--bar-h) + 20px);
+  z-index: 230;
   appearance: none;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.82rem;
-  font-weight: 700;
+  border: 0;
+  border-radius: 999px;
+  background: var(--photo-green);
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  padding: 14px 18px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
   cursor: pointer;
-  font-family: inherit;
-  transition: background 0.2s, border-color 0.2s;
 }
 
-.photoHistoryBtns button:hover {
-  border-color: var(--primary);
+.photo-float-btn:hover {
+  background: var(--photo-green-dark);
 }
 
-.photoHistoryBtns button[data-phact="del"] {
-  color: var(--danger);
-  border-color: var(--danger);
+.photo-float-btn.is-hidden {
+  display: none;
 }
 
-/* ══════════════════════════════════
-   FIXE AKTIONSLEISTE
-══════════════════════════════════ */
+/* BOTTOM ACTION BAR */
 .actions-bar {
   position: fixed;
   bottom: 0;
@@ -845,9 +832,9 @@ header {
   border-top: 2px solid var(--primary);
   padding: 10px 12px;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
-  z-index: 200;
+  z-index: 220;
 }
 
 .actions-bar .btn {
@@ -855,38 +842,45 @@ header {
   padding: 10px 6px;
 }
 
-/* ══════════════════════════════════
-   SAFE AREA (iOS Notch)
-══════════════════════════════════ */
+/* SAFE AREA */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .actions-bar {
     padding-bottom: calc(10px + env(safe-area-inset-bottom));
   }
 
   .pane {
-    padding-bottom: calc(var(--bar-h) + env(safe-area-inset-bottom) + 24px);
+    padding-bottom: calc(var(--bar-h) + env(safe-area-inset-bottom) + 28px);
+  }
+
+  .photo-float-btn {
+    bottom: calc(var(--bar-h) + env(safe-area-inset-bottom) + 18px);
   }
 }
 
-/* ══════════════════════════════════
-   MOBILE
-══════════════════════════════════ */
-@media (max-width: 460px) {
+/* MOBILE */
+@media (max-width: 640px) {
   .logo-container img {
-    max-width: 58px;
+    height: 38px;
+    max-width: 66px;
   }
 
   .header-text h1 {
-    font-size: 0.9rem;
+    font-size: 0.92rem;
+  }
+}
+
+@media (max-width: 460px) {
+  header {
+    gap: 10px;
+    padding: 10px 12px;
   }
 
   .actions-bar {
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: auto auto;
+    grid-template-columns: repeat(2, 1fr);
   }
 
-  .actions-bar .btn:nth-child(4),
-  .actions-bar .btn:nth-child(5) {
-    grid-column: span 1;
+  .photo-float-btn {
+    right: 12px;
+    padding: 13px 16px;
   }
 }

@@ -1,7 +1,7 @@
 {
-  "name": "HTB Bohrkernaufnahme",
-  "short_name": "HTB Bohrkern",
-  "description": "Bohrkernaufnahme, Bodendokumentation, Fotodoku und GeODin-Export nach ÖNORM EN ISO 14688.",
+  "name": "Bohrkernaufnahme",
+  "short_name": "Bohrkern",
+  "description": "Bohrkernaufnahme, Bodendokumentation, Fotodoku und Export nach ÖNORM EN ISO 14688.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

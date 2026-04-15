@@ -330,4 +330,161 @@ function namingSummary(layer) {
 
 function stateSummary(layer) {
   const parts = [];
-  if (layer.state)
+  if (layer.state)   parts.push(layer.state);
+  if (layer.colors?.length) parts.push(layer.colors.join(', '));
+  if (layer.organic) parts.push(layer.organic);
+  if (layer.calc && layer.calc !== 'nicht kalkhaltig') parts.push(layer.calc);
+  if (layer.water)   parts.push(layer.water);
+  return parts.join(' · ') || 'Zustand und Zusatzangaben';
+}
+
+function reportSummary(layer) {
+  return layer.note || fullDescription(layer) || 'Beschreibung und Notiz';
+}
+
+function getStateMode(layer) {
+  const fam = getFamilyByMain(layer.main1);
+  if (['gravel', 'sand', 'stone', 'block'].includes(fam))
+    return { label: 'Lagerungsdichte', options: COARSE_STATE_OPTIONS };
+  if (['silt', 'clay', 'peat', 'humus'].includes(fam))
+    return { label: 'Konsistenz', options: FINE_STATE_OPTIONS };
+  return { label: 'Lagerungsdichte / Konsistenz',
+           options: [...COARSE_STATE_OPTIONS, ...FINE_STATE_OPTIONS] };
+}
+
+/* ─── HTML-Bausteine ───────────────────────────── */
+
+function chipHtml({ layerId, field, value, active, soft = false }) {
+  return `<button
+    class="chip ${active ? 'is-active' : ''} ${soft ? 'chip--soft' : ''}"
+    type="button"
+    data-chip-field="${h(field)}"
+    data-id="${h(layerId)}"
+    data-value="${h(value)}"
+  >${h(value || '—')}</button>`;
+}
+
+function selectHtml({ layerId, field, options, value, label }) {
+  return `<label class="field">
+    <span class="field__label">${h(label)}</span>
+    <select class="field__select" data-field="${h(field)}" data-id="${h(layerId)}">
+      ${options.map(opt =>
+        `<option value="${h(opt)}" ${opt === value ? 'selected' : ''}>${h(opt || '—')}</option>`
+      ).join('')}
+    </select>
+  </label>`;
+}
+
+function subAccHtml({ layer, group, title, meta, body }) {
+  const isOpen = !!layer.ui?.[group];
+  return `<details class="subAcc" data-id="${h(layer.id)}" data-group="${h(group)}" ${isOpen ? 'open' : ''}>
+    <summary>
+      <div class="subAcc__head">
+        <span class="subAcc__title">${h(title)}</span>
+        <span class="subAcc__meta">${h(meta || '')}</span>
+      </div>
+    </summary>
+    <div class="subAcc__body">${body}</div>
+  </details>`;
+}
+
+function baseGroupHtml(layer, quick) {
+  return `<div class="form-grid">
+    <label class="field">
+      <span class="field__label">Von [m]</span>
+      <input class="field__input" type="number" step="0.01"
+             data-field="from" data-id="${h(layer.id)}" value="${h(layer.from || '')}" />
+    </label>
+    <label class="field">
+      <span class="field__label">Bis [m]</span>
+      <input class="field__input" type="number" step="0.01"
+             data-field="to" data-id="${h(layer.id)}" value="${h(layer.to || '')}" />
+    </label>
+    ${selectHtml({ layerId: layer.id, field: 'tool', options: TOOL_OPTIONS,
+                   value: layer.tool || '', label: 'Werkzeug / Verfahren' })}
+    ${quick ? '' : `
+      <label class="field">
+        <span class="field__label">Proben-Nr.</span>
+        <input class="field__input" type="text"
+               data-field="sampleNo" data-id="${h(layer.id)}" value="${h(layer.sampleNo || '')}" />
+      </label>
+      <label class="field">
+        <span class="field__label">Kernlauf</span>
+        <input class="field__input" type="text"
+               data-field="coreRun" data-id="${h(layer.id)}" value="${h(layer.coreRun || '')}" />
+      </label>
+      <label class="field">
+        <span class="field__label">Kerngewinnung [%]</span>
+        <input class="field__input" type="number" step="1" min="0" max="100"
+               data-field="recovery" data-id="${h(layer.id)}" value="${h(layer.recovery || '')}" />
+      </label>
+    `}
+  </div>`;
+}
+
+function namingGroupHtml(layer, quick) {
+  return `
+    <div class="choiceBlock">
+      <div class="choiceLabel">Hauptanteil</div>
+      <div class="chips">
+        ${MAIN_OPTIONS.map(x => chipHtml({
+          layerId: layer.id, field: 'main1', value: x.value,
+          active: layer.main1 === x.value
+        })).join('')}
+      </div>
+    </div>
+
+    ${quick ? '' : `
+      <div class="choiceBlock">
+        <div class="choiceLabel">2. Hauptanteil optional</div>
+        <div class="chips">
+          ${MAIN_OPTIONS.map(x => chipHtml({
+            layerId: layer.id, field: 'main2', value: x.value,
+            active: layer.main2 === x.value, soft: true
+          })).join('')}
+        </div>
+      </div>
+    `}
+
+    <div class="choiceBlock">
+      <div class="choiceLabel">Nebenanteile</div>
+      <div class="chips">
+        ${SECONDARY_OPTIONS.map(v => chipHtml({
+          layerId: layer.id, field: 'secondary', value: v,
+          active: (layer.secondary || []).includes(v), soft: true
+        })).join('')}
+      </div>
+    </div>
+
+    <div class="choiceBlock">
+      <div class="choiceLabel">Kornklasse optional</div>
+      <div class="chips">
+        ${GRAIN_OPTIONS.map(v => chipHtml({
+          layerId: layer.id, field: 'grain', value: v.value,
+          active: layer.grain === v.value
+        })).join('')}
+      </div>
+    </div>
+
+    <div class="smartHint">
+      Bei annähernd gleichen Hauptanteilen kann ein Schrägstrich verwendet werden, z. B. KIES/SAND.
+    </div>`;
+}
+
+function stateGroupHtml(layer, quick) {
+  const mode = getStateMode(layer);
+  return `
+    <div class="choiceBlock">
+      <div class="choiceLabel">${h(mode.label)}</div>
+      <div class="chips">
+        ${mode.options.map(v => chipHtml({
+          layerId: layer.id, field: 'state', value: v,
+          active: layer.state === v, soft: FINE_STATE_OPTIONS.includes(v)
+        })).join('')}
+      </div>
+    </div>
+
+    <div class="choiceBlock">
+      <div class="choiceLabel">Farbe</div>
+      <div class="chips">
+        ${COLOR_OPTIONS.map(v => chipHtml

@@ -2093,12 +2093,12 @@ window.addEventListener('DOMContentLoaded', () => {
     alert('Dokumentation im Verlauf gespeichert.');
   });
 
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      const swUrl = new URL('sw.js?v=141', window.location.href);
-      navigator.serviceWorker.register(swUrl.href).catch((err) => {
-        console.error('SW registration failed:', err);
-      });
+ if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    const swUrl = new URL('sw.js?v=141', window.location.href);
+    navigator.serviceWorker.register(swUrl.href).catch((err) => {
+      console.error('SW registration failed:', err);
     });
-  }
+  });
+}
 });

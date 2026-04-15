@@ -2,18 +2,36 @@
   "name": "HTB Bohrkernaufnahme",
   "short_name": "HTB Bohrkern",
   "description": "Bohrkernaufnahme, Bodendokumentation, Fotodoku und GeODin-Export nach ÖNORM EN ISO 14688.",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/Bohrkernaufnahme/",
+  "scope": "/Bohrkernaufnahme/",
   "display": "standalone",
   "background_color": "#111111",
   "theme_color": "#111111",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='28' fill='%23111111'/%3E%3Ctext x='96' y='96' font-family='Arial,sans-serif' font-size='72' font-weight='800' fill='%23ffed00' text-anchor='middle' dominant-baseline='central'%3EHTB%3C/text%3E%3C/svg%3E",
+      "src": "/Bohrkernaufnahme/launchericon-192x192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/Bohrkernaufnahme/launchericon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/Bohrkernaufnahme/launchericon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/Bohrkernaufnahme/launchericon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

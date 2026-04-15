@@ -1,13 +1,13 @@
 'use strict';
 
-console.log('HTB Bohrkernaufnahme v140 loaded');
+console.log('Bohrkernaufnahme v141 loaded');
 
-const STORAGE_DRAFT = 'htb-bohrkern-14688-draft-v140';
-const STORAGE_HISTORY = 'htb-bohrkern-14688-history-v140';
-const STORAGE_PHOTO_META = 'htb-bohrkern-photo-meta-v140';
+const STORAGE_DRAFT = 'bohrkern-draft-v141';
+const STORAGE_HISTORY = 'bohrkern-history-v141';
+const STORAGE_PHOTO_META = 'bohrkern-photo-meta-v141';
 const HISTORY_MAX = 40;
 
-const PHOTO_DB_NAME = 'htb-bohrkern-photo-db-v140';
+const PHOTO_DB_NAME = 'bohrkern-photo-db-v141';
 const PHOTO_DB_STORE = 'files';
 const PHOTO_MAX_EDGE = 1600;
 const PHOTO_QUALITY = 0.78;
@@ -82,6 +82,12 @@ const photoDraft = {
   entries: []
 };
 
+let selectedHistoryId = '';
+let currentBoxSavedItems = [];
+let viewerItems = [];
+let lightboxItems = [];
+let lightboxIndex = 0;
+
 /* =========================
    Helpers
 ========================= */
@@ -146,6 +152,22 @@ function formatBytes(bytes) {
   if (b < 1024) return `${b} B`;
   if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
   return `${(b / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function revokeItemUrls(items) {
+  (items || []).forEach(item => {
+    try { URL.revokeObjectURL(item.url); } catch {}
+  });
+}
+
+function clearCurrentBoxSavedItems() {
+  revokeItemUrls(currentBoxSavedItems);
+  currentBoxSavedItems = [];
+}
+
+function clearViewerItems() {
+  revokeItemUrls(viewerItems);
+  viewerItems = [];
 }
 
 /* =========================
@@ -287,6 +309,7 @@ function saveCurrentToHistory() {
   const list = readHistory();
   list.unshift(entry);
   writeHistory(list);
+  selectedHistoryId = entry.id;
   renderHistoryList();
 }
 
@@ -297,7 +320,6 @@ function applyState(snapshot) {
   state.layers = Array.isArray(snapshot.layers) && snapshot.layers.length
     ? snapshot.layers.map((l, i) => hydrateLayer(l, i))
     : [defaultLayer(0)];
-
   syncMetaToUi();
   syncMetaAccordionMeta();
   syncQuickModeUi();
@@ -438,7 +460,9 @@ function subAccHtml({ layer, group, title, meta, body }) {
           <span class="subAcc__meta">${h(meta || '')}</span>
         </div>
       </summary>
-      <div class="subAcc__body">${body}</div>
+      <div class="subAcc__body">
+        ${body}
+      </div>
     </details>
   `;
 }
@@ -640,7 +664,7 @@ function reportGroupHtml(layer, quick) {
 
     ${quick ? '' : `
       <div class="smartHint">
-        Diese Texte werden direkt für Bericht und CSV verwendet.
+        Diese Texte werden direkt für Bericht und Export verwendet.
       </div>
     `}
   `;
@@ -715,9 +739,7 @@ function renderLayers(openIds = null) {
   if (!host) return;
 
   const opened = Array.isArray(openIds) ? [...openIds] : getOpenIds();
-  if (!opened.length && state.layers.length) {
-    opened.push(state.layers[state.layers.length - 1].id);
-  }
+  if (!opened.length && state.layers.length) opened.push(state.layers[state.layers.length - 1].id);
 
   host.innerHTML = state.layers
     .map((layer, idx) => layerCardHtml(layer, idx, opened.includes(layer.id)))
@@ -757,7 +779,7 @@ function refreshLayerComputed(id) {
 }
 
 /* =========================
-   Verlauf
+   Verlauf / Exporte
 ========================= */
 function renderHistoryList() {
   const host = $('historyList');
@@ -765,8 +787,13 @@ function renderHistoryList() {
   const list = readHistory();
 
   if (!list.length) {
+    selectedHistoryId = '';
     host.innerHTML = `<div class="text"><p>Noch keine Dokumentationen gespeichert.</p></div>`;
     return;
+  }
+
+  if (selectedHistoryId && !list.some(x => x.id === selectedHistoryId)) {
+    selectedHistoryId = '';
   }
 
   host.innerHTML = list.map(entry => {
@@ -774,8 +801,10 @@ function renderHistoryList() {
     const project = snap.meta?.project || '—';
     const borehole = snap.meta?.borehole || '—';
     const count = snap.layers?.length || 0;
+    const isSelected = selectedHistoryId === entry.id;
+
     return `
-      <div class="historyItem">
+      <div class="historyItem ${isSelected ? 'is-selected' : ''}" data-history-entry="${h(entry.id)}">
         <div class="historyTop">
           <span>${h(entry.title)}</span>
           <span style="color:var(--muted);font-size:.82em">${h(new Date(entry.savedAt).toLocaleString('de-DE'))}</span>
@@ -786,6 +815,7 @@ function renderHistoryList() {
         <div class="historyBtns">
           <button type="button" data-hact="load" data-id="${h(entry.id)}">Laden</button>
           <button type="button" data-hact="csv" data-id="${h(entry.id)}">CSV</button>
+          <button type="button" data-hact="json" data-id="${h(entry.id)}">JSON</button>
           <button type="button" data-hact="pdf" data-id="${h(entry.id)}">PDF</button>
           <button type="button" data-hact="del" data-id="${h(entry.id)}">Löschen</button>
         </div>
@@ -794,9 +824,6 @@ function renderHistoryList() {
   }).join('');
 }
 
-/* =========================
-   Export
-========================= */
 function buildCsv(snapshot = state) {
   const rows = [];
   rows.push([
@@ -865,12 +892,12 @@ function buildCsv(snapshot = state) {
 }
 
 function exportCsv(snapshot = state) {
-  const name = `${(snapshot.meta?.date || 'datum').replaceAll('-', '')}_HTB_GeODin_Bohrkern.csv`;
+  const name = `${(snapshot.meta?.date || 'datum').replaceAll('-', '')}_Bohrkern.csv`;
   downloadText(name, buildCsv(snapshot), 'text/csv;charset=utf-8');
 }
 
 function exportJson(snapshot = state) {
-  const name = `${(snapshot.meta?.date || 'datum').replaceAll('-', '')}_HTB_Bohrkern.json`;
+  const name = `${(snapshot.meta?.date || 'datum').replaceAll('-', '')}_Bohrkern.json`;
   downloadText(name, JSON.stringify(snapshot, null, 2), 'application/json;charset=utf-8');
 }
 
@@ -901,7 +928,7 @@ function openHtmlReport(snapshot = state) {
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<title>HTB Bohrkernaufnahme Bericht</title>
+<title>Bohrkernaufnahme Bericht</title>
 <style>
 body{font-family:Arial,sans-serif;background:#fff;color:#111;margin:0;padding:20px}
 .head{display:flex;align-items:center;gap:16px;border-bottom:2px solid #111;padding-bottom:12px;margin-bottom:18px}
@@ -924,10 +951,10 @@ th{background:#f3f3f3}
 
   <div class="head">
     <div class="logo">
-      <img src="${logoSrc}" style="width:100%;display:block" alt="HTB"/>
+      <img src="${logoSrc}" style="width:100%;display:block" alt="Logo"/>
     </div>
     <div>
-      <div class="title">HTB Bohrkernaufnahme</div>
+      <div class="title">Bohrkernaufnahme</div>
       <div class="sub">ÖNORM EN ISO 14688 · Bericht / Kerndokumentation</div>
     </div>
   </div>
@@ -1125,6 +1152,82 @@ function setSelectedPhotoBox(box) {
   photoDraft.boxTo = box.to;
 }
 
+/* =========================
+   Photo Viewer / Lightbox
+========================= */
+function openLightbox(items, index = 0) {
+  if (!items.length) return;
+  lightboxItems = items;
+  lightboxIndex = Math.max(0, Math.min(index, items.length - 1));
+  updateLightbox();
+  $('photoLightbox').hidden = false;
+}
+
+function updateLightbox() {
+  if (!lightboxItems.length) return;
+  const current = lightboxItems[lightboxIndex];
+  $('lightboxImg').src = current.url;
+  $('lightboxImg').alt = current.name || '';
+  $('lightboxCounter').textContent = `${lightboxIndex + 1} / ${lightboxItems.length}`;
+}
+
+function closeLightbox() {
+  $('photoLightbox').hidden = true;
+  $('lightboxImg').src = '';
+  lightboxItems = [];
+  lightboxIndex = 0;
+}
+
+function prevLightbox() {
+  if (!lightboxItems.length) return;
+  lightboxIndex = (lightboxIndex - 1 + lightboxItems.length) % lightboxItems.length;
+  updateLightbox();
+}
+
+function nextLightbox() {
+  if (!lightboxItems.length) return;
+  lightboxIndex = (lightboxIndex + 1) % lightboxItems.length;
+  updateLightbox();
+}
+
+async function openPhotoViewer(docId) {
+  const docs = readPhotoMeta();
+  const entry = docs.find(d => d.id === docId);
+  if (!entry) return;
+
+  clearViewerItems();
+
+  const files = await getPhotoFiles(docId);
+  files.sort((a, b) => String(a.name).localeCompare(String(b.name), 'de'));
+
+  viewerItems = files.map(file => ({
+    url: URL.createObjectURL(file.blob),
+    name: file.name
+  }));
+
+  $('photoViewerTitle').textContent = `${entry.boxLabel} · ${compactDepth(entry.boxFrom)}–${compactDepth(entry.boxTo)} m`;
+  $('photoViewerGrid').innerHTML = viewerItems.length
+    ? viewerItems.map((item, idx) => `
+        <div class="photo-modal__item" data-viewer-photo="${idx}">
+          <img src="${item.url}" alt="${h(item.name)}">
+          <span>${h(item.name)}</span>
+        </div>
+      `).join('')
+    : `<div class="text"><p>Keine Fotos vorhanden.</p></div>`;
+
+  $('photoViewerModal').hidden = false;
+}
+
+function closePhotoViewer() {
+  $('photoViewerModal').hidden = true;
+  $('photoViewerGrid').innerHTML = '';
+  $('photoViewerTitle').textContent = '';
+  clearViewerItems();
+}
+
+/* =========================
+   Fotodoku UI
+========================= */
 function renderPhotoSelectedBox() {
   const el = $('photoSelectedBox');
   if (!el) return;
@@ -1168,6 +1271,56 @@ function renderPhotoPreviews() {
   `).join('');
 }
 
+async function renderCurrentBoxExistingPhotos() {
+  const host = $('photoExistingList');
+  if (!host) return;
+
+  clearCurrentBoxSavedItems();
+
+  const borehole = String(($('photo-borehole')?.value || state.meta.borehole || '')).trim();
+  const label = photoDraft.selectedBox;
+
+  if (!borehole || !label) {
+    host.innerHTML = '';
+    return;
+  }
+
+  const docs = readPhotoMeta();
+  const entry = docs.find(d => d.borehole === borehole && d.boxLabel === label);
+
+  if (!entry) {
+    host.innerHTML = `
+      <div class="photoExistingWrap">
+        <div class="section-title">Gespeicherte Fotos dieser Kernkiste</div>
+        <div class="text"><p>Für diese Kernkiste sind noch keine gespeicherten Fotos vorhanden.</p></div>
+      </div>
+    `;
+    return;
+  }
+
+  const files = await getPhotoFiles(entry.id);
+  files.sort((a, b) => String(a.name).localeCompare(String(b.name), 'de'));
+
+  currentBoxSavedItems = files.map(file => ({
+    url: URL.createObjectURL(file.blob),
+    name: file.name
+  }));
+
+  host.innerHTML = `
+    <div class="photoExistingWrap">
+      <div class="section-title">Gespeicherte Fotos dieser Kernkiste</div>
+      <div class="photoExistingGrid">
+        ${currentBoxSavedItems.map((item, idx) => `
+          <div class="photoExistingItem" data-current-photo="${idx}">
+            <img src="${item.url}" alt="${h(item.name)}">
+            <span>${h(item.name)}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
 function renderPhotoBoxes() {
   const host = $('photoBoxList');
   if (!host) return;
@@ -1189,6 +1342,8 @@ function renderPhotoBoxes() {
     if ($('photo-note') && document.activeElement !== $('photo-note')) $('photo-note').value = '';
     renderPhotoSelectedBox();
     renderPhotoPreviews();
+    clearCurrentBoxSavedItems();
+    $('photoExistingList').innerHTML = '';
     return;
   }
 
@@ -1222,6 +1377,7 @@ function renderPhotoBoxes() {
 
   renderPhotoSelectedBox();
   renderPhotoPreviews();
+  void renderCurrentBoxExistingPhotos();
 }
 
 function getCurrentBoxList() {
@@ -1286,7 +1442,9 @@ function clearAllDraftPhotoFiles() {
 function clearPhotoDraft(keepSelection = true) {
   clearAllDraftPhotoFiles();
   photoDraft.entries = [];
-  if (!keepSelection) setSelectedPhotoBox(null);
+  if (!keepSelection) {
+    setSelectedPhotoBox(null);
+  }
   if ($('photo-note')) $('photo-note').value = '';
   if ($('photo-files')) $('photo-files').value = '';
   renderPhotoBoxes();
@@ -1311,10 +1469,10 @@ function loadImage(file) {
 async function compressImageFile(file, prefix, order) {
   const img = await loadImage(file);
   const w = img.naturalWidth || img.width;
-  const h = img.naturalHeight || img.height;
-  const scale = Math.min(1, PHOTO_MAX_EDGE / Math.max(w, h));
+  const hgt = img.naturalHeight || img.height;
+  const scale = Math.min(1, PHOTO_MAX_EDGE / Math.max(w, hgt));
   const tw = Math.max(1, Math.round(w * scale));
-  const th = Math.max(1, Math.round(h * scale));
+  const th = Math.max(1, Math.round(hgt * scale));
 
   const canvas = document.createElement('canvas');
   canvas.width = tw;
@@ -1322,7 +1480,7 @@ async function compressImageFile(file, prefix, order) {
   const ctx = canvas.getContext('2d');
   ctx.drawImage(img, 0, 0, tw, th);
 
-  const blob = await new Promise(resolve => {
+  const blob = await new Promise((resolve) => {
     canvas.toBlob((b) => resolve(b || file), 'image/jpeg', PHOTO_QUALITY);
   });
 
@@ -1371,6 +1529,7 @@ async function savePhotoDoc() {
 
   if ($('meta-project')) $('meta-project').value = project;
   if ($('meta-borehole')) $('meta-borehole').value = borehole;
+  syncMetaAccordionMeta();
 
   const entriesToSave = photoDraft.entries.filter(e => Array.isArray(e.files) && e.files.length);
 
@@ -1427,6 +1586,47 @@ async function savePhotoDoc() {
   alert('Fotodoku gespeichert.');
 }
 
+async function downloadPhotoZip(docId) {
+  const docs = readPhotoMeta();
+  const entry = docs.find(d => d.id === docId);
+  if (!entry) return;
+
+  if (!window.JSZip) {
+    alert('ZIP-Library noch nicht geladen. Bitte kurz warten und erneut versuchen.');
+    return;
+  }
+
+  const files = await getPhotoFiles(docId);
+  const zip = new window.JSZip();
+  const folder = zip.folder(entry.boxLabel);
+
+  files.sort((a, b) => String(a.name).localeCompare(String(b.name), 'de'));
+  files.forEach(file => {
+    folder.file(file.name, file.blob);
+  });
+
+  folder.file('meta.json', JSON.stringify({
+    title: entry.title,
+    project: entry.project,
+    borehole: entry.borehole,
+    boxLabel: entry.boxLabel,
+    boxFrom: entry.boxFrom,
+    boxTo: entry.boxTo,
+    createdAt: new Date(entry.createdAt).toISOString(),
+    updatedAt: entry.updatedAt ? new Date(entry.updatedAt).toISOString() : null,
+    note: entry.note,
+    fileCount: entry.fileCount
+  }, null, 2));
+
+  const blob = await zip.generateAsync({
+    type: 'blob',
+    compression: 'DEFLATE',
+    compressionOptions: { level: 6 }
+  });
+
+  downloadBlob(`${entry.boxLabel}.zip`, blob);
+}
+
 async function deletePhotoDoc(docId) {
   const docs = readPhotoMeta();
   const entry = docs.find(d => d.id === docId);
@@ -1449,7 +1649,7 @@ function renderPhotoHistoryInto(host) {
   }
 
   host.innerHTML = docs.map(entry => `
-    <div class="photoHistoryItem">
+    <div class="photoHistoryItem" data-photo-doc="${h(entry.id)}">
       <div class="photoHistoryTop">
         <span>${h(entry.title)}</span>
         <span style="color:var(--muted);font-size:.82em">${h(new Date(entry.updatedAt || entry.createdAt).toLocaleString('de-DE'))}</span>
@@ -1461,6 +1661,7 @@ function renderPhotoHistoryInto(host) {
         ${entry.note ? `<br>Notiz: <b>${h(entry.note)}</b>` : ''}
       </div>
       <div class="photoHistoryBtns">
+        <button type="button" data-phact="zip" data-id="${h(entry.id)}">ZIP</button>
         <button type="button" data-phact="del" data-id="${h(entry.id)}">Löschen</button>
       </div>
     </div>
@@ -1632,28 +1833,38 @@ function hookLayerEvents() {
 function hookHistoryEvents() {
   $('historyList')?.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-hact]');
-    if (!btn) return;
-
-    const id = btn.dataset.id;
-    const act = btn.dataset.hact;
+    const card = e.target.closest('[data-history-entry]');
     const list = readHistory();
-    const entry = list.find(x => x.id === id);
 
-    if (act === 'del') {
-      writeHistory(list.filter(x => x.id !== id));
-      renderHistoryList();
+    if (btn) {
+      const id = btn.dataset.id;
+      const act = btn.dataset.hact;
+      const entry = list.find(x => x.id === id);
+
+      if (act === 'del') {
+        writeHistory(list.filter(x => x.id !== id));
+        if (selectedHistoryId === id) selectedHistoryId = '';
+        renderHistoryList();
+        return;
+      }
+
+      if (!entry) return;
+
+      if (act === 'load') {
+        applyState(entry.snapshot);
+        document.querySelector('.tab[data-tab="doku"]')?.click();
+      }
+
+      if (act === 'csv') exportCsv(entry.snapshot);
+      if (act === 'json') exportJson(entry.snapshot);
+      if (act === 'pdf') openHtmlReport(entry.snapshot);
       return;
     }
 
-    if (!entry) return;
-
-    if (act === 'load') {
-      applyState(entry.snapshot);
-      document.querySelector('.tab[data-tab="doku"]')?.click();
+    if (card) {
+      selectedHistoryId = card.dataset.historyEntry;
+      renderHistoryList();
     }
-
-    if (act === 'csv') exportCsv(entry.snapshot);
-    if (act === 'pdf') openHtmlReport(entry.snapshot);
   });
 }
 
@@ -1663,8 +1874,7 @@ function hookPhotoEvents() {
   });
 
   $('btnTakePhoto')?.addEventListener('click', () => {
-    const input = $('photo-files');
-    if (input) input.click();
+    $('photo-files')?.click();
   });
 
   $('photo-project')?.addEventListener('input', () => {
@@ -1742,6 +1952,13 @@ function hookPhotoEvents() {
     renderPhotoBoxes();
   });
 
+  $('photoExistingList')?.addEventListener('click', (e) => {
+    const item = e.target.closest('[data-current-photo]');
+    if (!item) return;
+    const idx = Number(item.dataset.currentPhoto);
+    openLightbox(currentBoxSavedItems, idx);
+  });
+
   $('btnPhotoClear')?.addEventListener('click', () => {
     clearPhotoDraft(true);
   });
@@ -1758,19 +1975,68 @@ function hookPhotoEvents() {
   [$('photoHistoryList'), $('photoHistoryListMirror')].forEach(host => {
     host?.addEventListener('click', async (e) => {
       const btn = e.target.closest('[data-phact]');
-      if (!btn) return;
-      const id = btn.dataset.id;
-      const act = btn.dataset.phact;
+      const card = e.target.closest('[data-photo-doc]');
 
-      if (act === 'del') {
+      if (btn) {
+        const id = btn.dataset.id;
+        const act = btn.dataset.phact;
+
+        if (act === 'zip') {
+          try {
+            await downloadPhotoZip(id);
+          } catch (err) {
+            console.error(err);
+            alert('ZIP konnte nicht erstellt werden.');
+          }
+        }
+
+        if (act === 'del') {
+          try {
+            await deletePhotoDoc(id);
+          } catch (err) {
+            console.error(err);
+            alert('Fotodoku konnte nicht gelöscht werden.');
+          }
+        }
+        return;
+      }
+
+      if (card) {
         try {
-          await deletePhotoDoc(id);
+          await openPhotoViewer(card.dataset.photoDoc);
         } catch (err) {
           console.error(err);
-          alert('Fotodoku konnte nicht gelöscht werden.');
+          alert('Fotos konnten nicht geöffnet werden.');
         }
       }
     });
+  });
+
+  $('photoViewerGrid')?.addEventListener('click', (e) => {
+    const item = e.target.closest('[data-viewer-photo]');
+    if (!item) return;
+    const idx = Number(item.dataset.viewerPhoto);
+    openLightbox(viewerItems, idx);
+  });
+
+  $('btnClosePhotoViewer')?.addEventListener('click', closePhotoViewer);
+  $('photoModalOverlay')?.addEventListener('click', closePhotoViewer);
+
+  $('btnCloseLightbox')?.addEventListener('click', closeLightbox);
+  $('btnLightboxPrev')?.addEventListener('click', prevLightbox);
+  $('btnLightboxNext')?.addEventListener('click', nextLightbox);
+
+  document.addEventListener('keydown', (e) => {
+    if (!$('photoLightbox').hidden) {
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') prevLightbox();
+      if (e.key === 'ArrowRight') nextLightbox();
+      return;
+    }
+
+    if (!$('photoViewerModal').hidden && e.key === 'Escape') {
+      closePhotoViewer();
+    }
   });
 }
 
@@ -1827,24 +2093,9 @@ window.addEventListener('DOMContentLoaded', () => {
     alert('Dokumentation im Verlauf gespeichert.');
   });
 
-  $('btnCsv')?.addEventListener('click', () => {
-    collectMetaFromUi();
-    exportCsv(state);
-  });
-
-  $('btnJson')?.addEventListener('click', () => {
-    collectMetaFromUi();
-    exportJson(state);
-  });
-
-  $('btnPdf')?.addEventListener('click', () => {
-    collectMetaFromUi();
-    openHtmlReport(state);
-  });
-
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      const swUrl = new URL('sw.js?v=140', window.location.href);
+      const swUrl = new URL('sw.js?v=141', window.location.href);
       navigator.serviceWorker.register(swUrl.href).catch((err) => {
         console.error('SW registration failed:', err);
       });

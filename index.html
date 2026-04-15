@@ -8,17 +8,14 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
   <header>
     <div class="logo-container">
-      <svg width="44" height="44" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <rect width="44" height="44" rx="10" fill="#111111"/>
-        <text x="22" y="22" font-family="Arial,sans-serif" font-size="13" font-weight="800"
-              fill="#ffed00" text-anchor="middle" dominant-baseline="central">HTB</text>
-      </svg>
+      <img src="logo.svg" alt="HTB Logo">
     </div>
     <div class="header-text">
       <h1>HTB Bohrkernaufnahme</h1>
@@ -182,11 +179,11 @@
 
   <!-- Fixe Aktionsleiste -->
   <div class="actions-bar">
-    <button class="btn btn--ghost"    id="btnPhotoDock" type="button">📷 Fotos</button>
-    <button class="btn btn--ghost"    id="btnSave"      type="button">Speichern</button>
-    <button class="btn btn--ghost"    id="btnCsv"       type="button">CSV</button>
-    <button class="btn btn--ghost"    id="btnJson"      type="button">JSON</button>
-    <button class="btn btn--primary"  id="btnPdf"       type="button">Bericht / PDF</button>
+    <button class="btn btn--ghost"   id="btnPhotoDock" type="button">📷 Fotos</button>
+    <button class="btn btn--ghost"   id="btnSave"      type="button">Speichern</button>
+    <button class="btn btn--ghost"   id="btnCsv"       type="button">CSV</button>
+    <button class="btn btn--ghost"   id="btnJson"      type="button">JSON</button>
+    <button class="btn btn--primary" id="btnPdf"       type="button">Bericht / PDF</button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>

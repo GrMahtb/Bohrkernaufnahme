@@ -2,12 +2,12 @@
 
 console.log('HTB Bohrkernaufnahme v91 loaded');
 
-const STORAGE_DRAFT = 'htb-bohrkern-14688-draft-v91';
-const STORAGE_HISTORY = 'htb-bohrkern-14688-history-v91';
-const STORAGE_PHOTO_META = 'htb-bohrkern-photo-meta-v91';
+const STORAGE_DRAFT = 'htb-bohrkern-14688-draft-v132';
+const STORAGE_HISTORY = 'htb-bohrkern-14688-history-v132';
+const STORAGE_PHOTO_META = 'htb-bohrkern-photo-meta-v132';
 const HISTORY_MAX = 40;
 
-const PHOTO_DB_NAME = 'htb-bohrkern-photo-db-v91';
+const PHOTO_DB_NAME = 'htb-bohrkern-photo-db-v132';
 const PHOTO_DB_STORE = 'files';
 const PHOTO_MAX_EDGE = 1600;
 const PHOTO_QUALITY = 0.78;

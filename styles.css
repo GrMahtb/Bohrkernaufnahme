@@ -2,7 +2,14 @@
    BOHRKERNAUFNAHME – CSS
    Dark Mode, Root-Version
 ═══════════════════════════════════════════════ */
+[hidden] {
+  display: none !important;
+}
 
+.photo-modal[hidden],
+.photo-lightbox[hidden] {
+  display: none !important;
+}
 :root {
   --bg:               #111111;
   --surface:          #1e1e1e;

@@ -2,12 +2,11 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>HTB Bohrkernaufnahme</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <title>Bohrkernaufnahme</title>
   <meta name="theme-color" content="#111111">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="launchericon-192x192.png">
@@ -19,12 +18,10 @@
     <div class="logo-container">
       <img src="logo.svg" alt="HTB Logo">
     </div>
-
     <div class="header-text">
-      <h1>HTB Bohrkernaufnahme</h1>
+      <h1>Bohrkernaufnahme</h1>
       <p>ÖNORM EN ISO 14688</p>
     </div>
-
     <div class="header-actions">
       <button class="btn btn--ghost btn--sm"
               id="btnQuickMode"
@@ -51,43 +48,35 @@
           <span class="sectionAcc__meta" id="metaAccMeta">Projekt, Bohrung, Datum</span>
         </div>
       </summary>
-
       <div class="sectionAcc__body">
         <div class="form-grid">
           <label class="field">
             <span class="field__label">Datum</span>
             <input class="field__input" type="date" id="meta-date">
           </label>
-
           <label class="field">
             <span class="field__label">Bearbeiter</span>
             <input class="field__input" type="text" id="meta-user" placeholder="Name">
           </label>
-
           <label class="field">
             <span class="field__label">Projekt</span>
             <input class="field__input" type="text" id="meta-project" placeholder="Projektname">
           </label>
-
           <label class="field">
             <span class="field__label">Bohrung / Aufschluss</span>
             <input class="field__input" type="text" id="meta-borehole" placeholder="z.B. B1">
           </label>
-
           <label class="field">
             <span class="field__label">Ort / Abschnitt</span>
             <input class="field__input" type="text" id="meta-location" placeholder="Standort">
           </label>
-
           <label class="field">
             <span class="field__label">Bohrverfahren / Gerät</span>
             <input class="field__input" type="text" id="meta-device" placeholder="Bohrgerät">
           </label>
-
           <label class="field field--wide">
             <span class="field__label">Bemerkung gesamt</span>
-            <textarea class="field__textarea"
-                      id="meta-note"
+            <textarea class="field__textarea" id="meta-note"
                       placeholder="Allgemeine Bemerkungen zur Bohrung …"></textarea>
           </label>
         </div>
@@ -102,7 +91,11 @@
       <button class="btn btn--primary" id="btnAddLayer" type="button">
         + Schicht hinzufügen
       </button>
+      <button class="btn btn--ghost" id="btnSave" type="button" style="margin-top:10px">
+        Speichern
+      </button>
     </div>
+
   </div>
 
   <!-- TAB: Verlauf -->
@@ -111,7 +104,6 @@
       <div class="section-title">Gespeicherte Dokumentationen</div>
       <div id="historyList"></div>
     </section>
-
     <section class="section">
       <div class="section-title">Gespeicherte Fotodokus</div>
       <div id="photoHistoryListMirror"></div>
@@ -121,19 +113,16 @@
   <!-- TAB: Fotodoku -->
   <div class="pane" id="tab-photo" hidden>
     <section class="section">
-      <div class="section-title">Kerndokumentation – Fotos</div>
 
       <div class="form-grid">
         <label class="field">
           <span class="field__label">Projekt</span>
           <input class="field__input" type="text" id="photo-project" placeholder="Projektname">
         </label>
-
         <label class="field">
           <span class="field__label">Aufschluss / Bohrung</span>
           <input class="field__input" type="text" id="photo-borehole" placeholder="z.B. B1">
         </label>
-
         <label class="field">
           <span class="field__label">Kernende [m]</span>
           <input class="field__input" type="number" step="0.1" min="0"
@@ -141,7 +130,7 @@
         </label>
       </div>
 
-      <button class="btn btn--ghost" id="btnGenerateBoxes" type="button">
+      <button class="btn btn--ghost" id="btnGenerateBoxes" type="button" style="margin-top:10px">
         Kernkisten generieren
       </button>
 
@@ -149,6 +138,9 @@
       <div id="photoBoxList"></div>
 
       <div id="photoSelectedBox" class="photoSelectedBox"></div>
+
+      <!-- Gespeicherte Fotos der gewählten Kernkiste -->
+      <div id="photoExistingList"></div>
 
       <label class="field" style="margin-top:12px">
         <span class="field__label">Notiz zur Kernkiste</span>
@@ -175,11 +167,11 @@
              multiple
              style="display:none">
 
-      <div class="section-title" style="margin-top:20px">Vorschau neue Fotos</div>
       <div id="photoPreviewList"></div>
 
       <div class="section-title" style="margin-top:20px">Gespeicherte Fotodokus</div>
       <div id="photoHistoryList"></div>
+
     </section>
   </div>
 
@@ -188,14 +180,28 @@
     Foto
   </button>
 
-  <!-- Fixe Aktionsleiste -->
-  <div class="actions-bar">
-    <button class="btn btn--ghost" id="btnSave"  type="button">Speichern</button>
-    <button class="btn btn--ghost" id="btnCsv"   type="button">CSV</button>
-    <button class="btn btn--ghost" id="btnJson"  type="button">JSON</button>
-    <button class="btn btn--primary" id="btnPdf" type="button">Bericht / PDF</button>
+  <!-- Photo Viewer Modal -->
+  <div id="photoViewerModal" class="photo-modal" hidden>
+    <div class="photo-modal__overlay" id="photoModalOverlay"></div>
+    <div class="photo-modal__content">
+      <div class="photo-modal__header">
+        <span class="photo-modal__title" id="photoViewerTitle"></span>
+        <button class="photo-modal__close" id="btnClosePhotoViewer" type="button">✕</button>
+      </div>
+      <div class="photo-modal__grid" id="photoViewerGrid"></div>
+    </div>
   </div>
 
+  <!-- Lightbox -->
+  <div id="photoLightbox" class="photo-lightbox" hidden>
+    <button class="photo-lightbox__close" id="btnCloseLightbox" type="button">✕</button>
+    <button class="photo-lightbox__nav photo-lightbox__prev" id="btnLightboxPrev" type="button">‹</button>
+    <img class="photo-lightbox__img" id="lightboxImg" src="" alt="">
+    <button class="photo-lightbox__nav photo-lightbox__next" id="btnLightboxNext" type="button">›</button>
+    <div class="photo-lightbox__counter" id="lightboxCounter"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
